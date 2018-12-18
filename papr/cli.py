@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import fcntl
 import os
 import re
 import shutil
@@ -7,7 +6,6 @@ import sqlite3
 import sys
 import json
 import termios
-import tty
 import urllib
 from subprocess import Popen, DEVNULL
 import urllib.request
@@ -15,7 +13,6 @@ import urllib.request
 import keyboard as keyboard
 from bs4 import BeautifulSoup
 import termcolor
-import curses
 
 REPO_NAME = ".paper"
 SQLITE_FILE = "paper.db"
@@ -47,6 +44,16 @@ def help(exitcode=0):
     print("select [regex]")
     print()
     sys.exit(exitcode)
+
+
+def cursor_off():
+    sys.stdout.write("\x1b[?25l")
+    sys.stdout.flush()
+
+
+def cursor_on():
+    sys.stdout.write("\x1b[?25h")
+    sys.stdout.flush()
 
 
 def assert_in_repo():
@@ -173,9 +180,14 @@ def hr():
 
 def print_header():
     cols, _ = os.get_terminal_size(0)
-    print("Id    Filename ")
+    print("Id    Title ")
     hr()
     return cols
+
+
+def empty_line():
+    cols, _ = os.get_terminal_size(0)
+    return " " * cols
 
 
 def print_paper(paper, selected = False):
@@ -184,7 +196,7 @@ def print_paper(paper, selected = False):
     # 1 columns for space
     # cols - (5 + 1) columns for filename
     n = cols - (5 + 1)
-    f = paper.filename
+    f = paper.title
     if len(f) > n:
         f = f[:n - 4] + " ..."
     s = "{:5d} {}".format(paper.idx, f)
@@ -207,6 +219,7 @@ def cmd_list(args):
     if len(r) == 0:
         print("empty")
     else:
+        print_header()
         print_papers(r)
 
 
@@ -426,39 +439,67 @@ def cmd_select(args):
         sys.exit(0)
     if len(args) > 0:
         r = filter_list(r, args[0])
-    print(termcolor.colored("ESC: quit | ENTER: open paper | i: up | k: down", "white", attrs=["bold"]))
+    print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down", "white", attrs=["bold"]))
     print_header()
     m = rows() - 4
     n = len(r)
     window_rows = min(m, n)        # number of rows of the view
     view = n - window_rows         # index in r of the first element in the view
     selected = window_rows - 1     # row selected within the view
+    search = ""
+    in_search = False
+    cursor_off()
     while True:
         for idx, p in enumerate(r[view:view + m]):
             print_paper(p, idx == selected)
+        sys.stdout.write(empty_line() + "\r")
+        if in_search or len(search) > 0:
+            sys.stdout.write("search: " + search)
+            sys.stdout.flush()
         k = read_key()
-        if k == 'i':
-            if selected == 0:
-                view = max(view - 1, 0)
+        if not in_search:
+            if k == 'i':
+                if selected == 0:
+                    view = max(view - 1, 0)
+                else:
+                    selected -= 1
+                cursor_up(window_rows + 1)
+            elif k == 'k':
+                if selected == window_rows - 1:
+                    if selected + view + 1 < n:
+                        view += 1
+                    pass
+                else:
+                    selected += 1
+                cursor_up(window_rows + 1)
+            elif ord(k) == 10:
+                show_pdf(r[view + selected])
+                cursor_up(window_rows+ 1)
+            elif ord(k) == 27 or k == 'q':
+                break
+            elif k == 's':
+                cursor_up(window_rows + 1)
+                in_search = True
+                cursor_on()
             else:
-                selected -= 1
-            cursor_up(window_rows + 1)
-        elif k == 'k':
-            if selected == window_rows - 1:
-                if selected + view + 1 < n:
-                    view += 1
-                pass
-            else:
-                selected += 1
-            cursor_up(window_rows + 1)
-        elif ord(k) == 10:
-            show_pdf(r[view + selected])
-            cursor_up(window_rows+ 1)
-        elif ord(k) == 27:
-            break
+                cursor_up(window_rows + 1)
         else:
-            cursor_up(window_rows + 1)
-
+            if ord(k) == 27:
+                in_search = False
+                cursor_off()
+                search = ""
+                cursor_up(window_rows + 1)
+            elif ord(k) == 10:
+                in_search= False
+                cursor_off()
+                cursor_up(window_rows + 1)
+            elif ord(k) == 127:
+                search = search[:-1]
+                cursor_up(window_rows + 1)
+            else:
+                search += k
+                cursor_up(window_rows + 1)
+    cursor_on()
 
 
 def parse_command():
