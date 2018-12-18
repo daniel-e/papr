@@ -10,7 +10,6 @@ import urllib
 from subprocess import Popen, DEVNULL
 import urllib.request
 
-import keyboard as keyboard
 from bs4 import BeautifulSoup
 import termcolor
 
@@ -203,7 +202,7 @@ def print_paper(paper, selected = False):
     if len(s) < cols:
         s = s + (" " * (cols - len(s)))
     if selected:
-        print(termcolor.colored(s, 'white', 'on_red'))
+        print(termcolor.colored(s, 'white', 'on_red', attrs=["bold"]))
     else:
         print(termcolor.colored(s, 'white'))
 
@@ -439,23 +438,40 @@ def cmd_select(args):
         sys.exit(0)
     if len(args) > 0:
         r = filter_list(r, args[0])
-    print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down", "white", attrs=["bold"]))
+    print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search", "white", attrs=["bold"]))
     print_header()
     m = rows() - 4
     n = len(r)
     window_rows = min(m, n)        # number of rows of the view
     view = n - window_rows         # index in r of the first element in the view
     selected = window_rows - 1     # row selected within the view
+    initial_window_rows = window_rows
     search = ""
     in_search = False
     cursor_off()
+    papers = r[:]
     while True:
-        for idx, p in enumerate(r[view:view + m]):
+        cursor_up(4)
+        if in_search:
+            print(termcolor.colored("ESC: cancel + back to selection mode | ENTER: back to selection mode", "white", attrs=["bold"]))
+        else:
+            print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search    ", "white", attrs=["bold"]))
+        print_header()
+
+        cnt = 0
+        for idx, p in enumerate(papers[view:view + m]):
             print_paper(p, idx == selected)
+            cnt += 1
+        while cnt < initial_window_rows:
+            cnt += 1
+            print(empty_line())
+
+        # search line
         sys.stdout.write(empty_line() + "\r")
         if in_search or len(search) > 0:
             sys.stdout.write("search: " + search)
             sys.stdout.flush()
+
         k = read_key()
         if not in_search:
             if k == 'i':
@@ -463,7 +479,7 @@ def cmd_select(args):
                     view = max(view - 1, 0)
                 else:
                     selected -= 1
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
             elif k == 'k':
                 if selected == window_rows - 1:
                     if selected + view + 1 < n:
@@ -471,35 +487,51 @@ def cmd_select(args):
                     pass
                 else:
                     selected += 1
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
             elif ord(k) == 10:
-                show_pdf(r[view + selected])
-                cursor_up(window_rows+ 1)
+                show_pdf(papers[view + selected])
+                cursor_up(initial_window_rows+ 1)
             elif ord(k) == 27 or k == 'q':
                 break
             elif k == 's':
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
                 in_search = True
                 cursor_on()
             else:
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
         else:
+            update_search = False
             if ord(k) == 27:
                 in_search = False
                 cursor_off()
                 search = ""
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
+                update_search = True
             elif ord(k) == 10:
                 in_search= False
                 cursor_off()
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
             elif ord(k) == 127:
                 search = search[:-1]
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
+                update_search = True
             else:
                 search += k
-                cursor_up(window_rows + 1)
+                cursor_up(initial_window_rows + 1)
+                update_search = True
+            if update_search:
+                if len(search) == 0:
+                    papers = r[:]
+                else:
+                    papers = filter_list(r, search)
+                m = rows() - 4
+                n = len(papers)
+                window_rows = min(m, n)        # number of rows of the view
+                view = n - window_rows         # index in r of the first element in the view
+                selected = window_rows - 1     # row selected within the view
+
     cursor_on()
+    print()
 
 
 def parse_command():
