@@ -179,7 +179,7 @@ def hr():
 
 def print_header():
     cols, _ = os.get_terminal_size(0)
-    print("Id    Title ")
+    print("Id    Title " + " " * (cols - 12))
     hr()
     return cols
 
@@ -440,7 +440,7 @@ def cmd_select(args):
         r = filter_list(r, args[0])
     print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search", "white", attrs=["bold"]))
     print_header()
-    m = rows() - 4
+    m = rows() - 4 - 1             # have added -1 as otherwise the header flickers sometimes when scrolling
     n = len(r)
     window_rows = min(m, n)        # number of rows of the view
     view = n - window_rows         # index in r of the first element in the view

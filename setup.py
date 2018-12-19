@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="papr",
-    version="0.0.5",
+    version="0.0.7",
     entry_points = {
         "console_scripts": ['papr = papr.cli:main']
         },
@@ -22,7 +22,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'keyboard',
         'bs4',
         'termcolor'
     ]
