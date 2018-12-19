@@ -9,7 +9,7 @@ import termios
 import urllib
 from subprocess import Popen, DEVNULL
 import urllib.request
-
+from pathlib import Path
 from bs4 import BeautifulSoup
 import termcolor
 
@@ -17,13 +17,17 @@ REPO_NAME = ".paper"
 SQLITE_FILE = "paper.db"
 CONFIG_FILE = "paper.cfg"
 VIEWER = "/usr/bin/evince"
+HOME_DIR = ".papr"
+HOME_FILE = "papr.cfg"
 
 
 def help(exitcode=0):
     print("Usage: " + sys.argv[0] + " [COMMAND] [OPTION]...\n")
     print("COMMANDS")
     hr()
-    print("init       Create a new repository in the current directory.")
+    print("help       This help message.")
+    print("init       Create a new repository in the current directory and sets it to the")
+    print("           default repository.")
     print("list       List all tracked papers in the current repository.")
     print("pop        Read the paper with the largest ID.")
     print("search <regex>")
@@ -40,7 +44,8 @@ def help(exitcode=0):
     print("           Add a file which is located in the repository directory but which")
     print("           is not tracked yet. The filename does not change and will be used")
     print("           as the title without the extension.")
-    print("select [regex]")
+    print("default    Set the current repository as default repository.")
+    print("[regex]")
     print()
     sys.exit(exitcode)
 
@@ -72,8 +77,36 @@ def create_directory():
         sys.exit(1)
 
 
+def repo_path():
+    r = ""
+    if os.path.exists(REPO_NAME):
+        r = "."
+    else:
+        d = read_config()
+        n = d["default_repo"]
+        if n == "null":
+            print("No repository.", file=sys.stderr)
+            sys.exit(1)
+        r = n
+    return r
+
+
+def repo_idx_path():
+    r = ""
+    if os.path.exists(REPO_NAME):
+        r = REPO_NAME
+    else:
+        d = read_config()
+        n = d["default_repo"]
+        if n == "null":
+            print("No repository.", file=sys.stderr)
+            sys.exit(1)
+        r = n + "/" + REPO_NAME
+    return r
+
+
 def sqlite_file():
-    return REPO_NAME + "/" + SQLITE_FILE
+    return repo_idx_path() + "/" + SQLITE_FILE
 
 
 def db_create():
@@ -160,9 +193,41 @@ def create_config():
     f.close()
 
 
+def write_config(d):
+    home = str(Path.home()) + "/" + HOME_DIR
+    n = home + "/" + HOME_FILE
+    f = open(n, "w")
+    f.write(json.dumps(d))
+    f.close()
+
+
+def read_config():
+    home = str(Path.home()) + "/" + HOME_DIR
+    if not os.path.exists(home):
+        os.mkdir(home)
+    n = home + "/" + HOME_FILE
+    if not os.path.exists(n):
+        d = {"cfg_version": "0.0.1", "default_repo": "null"}
+        write_config(d)
+    f = open(n, "r")
+    r = json.loads(f.read())
+    f.close()
+    return r
+
+
+def update_default_repo():
+    d = read_config()
+    if not os.path.exists(REPO_NAME):
+        print("Not in a repository.", file=sys.stderr)
+        sys.exit(1)
+    d["default_repo"] = os.getcwd()
+    write_config(d)
+
+
 def cmd_init(args):
     create_directory()
     create_config()
+    update_default_repo()
     db_create()
     print("Repository created.")
 
@@ -342,7 +407,7 @@ def cmd_fetch(args):
 def show_pdf(p):
     #print("File :", p.filename)
     #print("Title:", p.title)
-    Popen([VIEWER, p.filename], stderr=DEVNULL, stdout=DEVNULL)
+    Popen([VIEWER, repo_path() + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
 
 
 def cmd_read(args):
@@ -534,9 +599,14 @@ def cmd_select(args):
     print()
 
 
+def cmd_default():
+    update_default_repo()
+
+
 def parse_command():
     if len(sys.argv) < 2:
-        help(1)
+        cmd_select(sys.argv[2:])
+        sys.exit(0)
     c = sys.argv[1]
     if c == "init":
         cmd_init(sys.argv[2:])
@@ -552,10 +622,12 @@ def parse_command():
         cmd_pop()
     elif c == "add":
         cmd_add(sys.argv[2:])
-    elif c == "select":
-        cmd_select(sys.argv[2:])
+    elif c == "help":
+        help(0)
+    elif c == "default":
+        cmd_default()
     else:
-        help(1)
+        cmd_select(sys.argv[2:])
 
 
 def main():
