@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import os
 import re
 import shutil
@@ -262,7 +263,7 @@ def print_paper(paper, selected = False):
     n = cols - (5 + 1)
     f = paper.title
     if len(f) > n:
-        f = f[:n - 4] + " ..."
+        f = f[:n - 3] + "..."
     s = "{:5d} {}".format(paper.idx, f)
     if len(s) < cols:
         s = s + (" " * (cols - len(s)))
@@ -319,6 +320,26 @@ def is_text_or_html(s):
     return s is not None and (s.lower().find("text") >= 0 or s.lower().find("html") >= 0)
 
 
+def bar(p):
+    chars = "▏▎▍▌▋▊▉█"
+    N = 40
+    l = p * N / 100.0
+    todo = "." * (N - int(l))
+    done = "█" * int(l)
+
+    f = l - math.floor(l)
+    if f > 0:
+        todo = "." * (N - int(l) - 1)
+        done = done + chars[int(f * len(chars))]
+
+    r = str(int(255 - 255 * p / 100.0))
+    g = str(int(255 * p / 100.0))
+    b = "0"
+    #sys.stdout.write("\r|\x1b[1;33m{}\x1b[0m{}| {:3d}% ".format(done, todo, int(p)))
+    sys.stdout.write("\r|\x1b[38;2;{};{};{}m{}\x1b[0m{}| {:3d}% ".format(r, g, b, done, todo, int(p)))
+    sys.stdout.flush()
+
+
 def download(rsp):
     n = rsp.getheader("content-length")
     data = bytes()
@@ -329,16 +350,9 @@ def download(rsp):
             t = rsp.read(min(1024, n))
             data += t
             n -= min(1024, n)
-            p = int(100.0 * (s - n) / s)
-            N = 40
-            l = int(p * N / 100)
-            done = "█" * l
-            todo = "." * (N - l)
-            sys.stdout.write("\r|{}{}| {:3d}% ".format(done, todo, p))
-            sys.stdout.flush()
+            bar(100.0 * (s - n) / s)
         print()
     else:
-        chars = "▏▎▍▌▋▊▉█"
         chars = "|/-|\\"
         n = 0
         while True:
