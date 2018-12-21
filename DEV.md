@@ -41,3 +41,9 @@ LIVE
 
 twine upload dist/*
 python3 -m pip install --no-cache-dir papr
+
+
+----------------
+
+rm -rf build dist && python3 setup.py sdist bdist_wheel && pip3 install dist/*.whl
+

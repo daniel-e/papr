@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
+
 import math
 import os
 import re
 import shutil
 import sqlite3
 import sys
-import json
 import termios
 import urllib
+from collections import namedtuple
+from pathlib import Path
 from subprocess import Popen, DEVNULL
 import urllib.request
-from pathlib import Path
 from bs4 import BeautifulSoup
 import termcolor
+
+from .config import Config
+from .paper import Paper
+from .console import cursor_off, cursor_on, cursor_up
 
 REPO_NAME = ".paper"
 SQLITE_FILE = "paper.db"
@@ -22,43 +27,69 @@ HOME_DIR = ".papr"
 HOME_FILE = "papr.cfg"
 
 
+Paths = namedtuple("Paths", ['home', 'repo_pdf', 'repo_meta'])
+
+
+def paths():
+    """
+    Terminates if neither the current directory is a repository nor a
+    default reporitory does exist.
+    :return:
+    """
+    home = str(Path.home()) + "/" + HOME_DIR  # ~/.papr/
+    repo_pdf = os.getcwd()                    # $PWD
+    repo_meta = repo_pdf + "/" + REPO_NAME    # $PWD/.paper/
+
+    if not os.path.exists(repo_meta):
+        c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+        repo_pdf = c.read_config()["default_repo"]
+        repo_meta = repo_pdf + "/" + REPO_NAME
+
+    if not os.path.exists(repo_meta):
+        print("No repository.", file=sys.stderr)
+        sys.exit(1)
+
+    return Paths(home, repo_pdf, repo_meta)
+
+
+def command():
+    s = sys.argv[0]
+    return s if s.rfind("/") < 0 else s[s.rfind("/")+1:]
+
+
 def help(exitcode=0):
-    print("Usage: " + sys.argv[0] + " [COMMAND] [OPTION]...\n")
-    print("COMMANDS")
+    print("Usage: " + command() + " [search regex] | <command> [<args>]\n")
+    print("Commands")
     hr()
-    print("help       This help message.")
-    print("init       Create a new repository in the current directory and sets it to the")
-    print("           default repository.")
-    print("list       List all tracked papers in the current repository.")
-    print("pop        Read the paper with the largest ID.")
-    print("search <regex>")
-    print("           List all papers for which the regex matches the title.")
-    print("fetch  <file> <title>")
-    print("           Add a paper to the repository. The file is copied to the repository.")
-    print("           Filename will be <idx>_<normalized_title>.pdf")
-    print("       <url> [title]")
-    print("           Download a paper and add it to the repository. If the URL points to")
-    print("           a pdf title is required. If the URL points to a web page which")
-    print("           contains the title and a link to the pdf in a recognized format")
-    print("           title is not required and the pdf will be downloaded.")
-    print("add    <file> [idx]")
-    print("           Add a file which is located in the repository directory but which")
-    print("           is not tracked yet. The filename does not change and will be used")
-    print("           as the title without the extension.")
-    print("default    Set the current repository as default repository.")
-    print("[regex]")
+    print("  help       This help message.")
+    print("\nRepository commands")
+    print("  init       Create a new repository in the current directory and sets it to")
+    print("             the default repository.\n")
+    print("  default    Set the current repository as default repository.")
+    print("\nList papers")
+    print("  list       List all tracked papers in the current repository.\n")
+    print("  search <regex>")
+    print("             List all papers for which the regex matches the title.")
+    print("\nReading papers")
+    print("  read <id>  Read paper with given ID.\n")
+    print("  last [<n>] Read the paper with the n-th largest ID. default: n = 1")
+    print("\nAdding papers")
+    print("  fetch  <file> <title>")
+    print("             Add a paper to the repository.  The file is copied to the")
+    print("             repository. Filename will be <idx>_<normalized_title>.pdf")
+    print("")
+    print("         <url> [title]")
+    print("             Download a paper and add it to the repository. If the URL points")
+    print("             to a pdf title is required. If the URL points to a web page which")
+    print("             contains the title and a link to the pdf in a recognized format")
+    print("             title is not required and the pdf will be downloaded.")
+    print("")
+    print("  add    <file> [idx]")
+    print("             Add a file which is located in the repository directory but which")
+    print("             is not tracked yet. The filename does not change and will be used")
+    print("             as the title without the extension.")
     print()
     sys.exit(exitcode)
-
-
-def cursor_off():
-    sys.stdout.write("\x1b[?25l")
-    sys.stdout.flush()
-
-
-def cursor_on():
-    sys.stdout.write("\x1b[?25h")
-    sys.stdout.flush()
 
 
 def assert_in_repo():
@@ -79,11 +110,12 @@ def create_directory():
 
 
 def repo_path():
+    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
     r = ""
     if os.path.exists(REPO_NAME):
         r = "."
     else:
-        d = read_config()
+        d = c.read_config()
         n = d["default_repo"]
         if n == "null":
             print("No repository.", file=sys.stderr)
@@ -93,11 +125,12 @@ def repo_path():
 
 
 def repo_idx_path():
+    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
     r = ""
     if os.path.exists(REPO_NAME):
         r = REPO_NAME
     else:
-        d = read_config()
+        d = c.read_config()
         n = d["default_repo"]
         if n == "null":
             print("No repository.", file=sys.stderr)
@@ -120,34 +153,21 @@ def db_create():
     # TODO: handle db errors
 
 
-class Paper:
-    def __init__(self, idx, filename, title):
-        self.idx = idx
-        self.filename = filename
-        self.title = title
+class DB:
+    def __init__(self, repo_paths):
+        self.repo_paths = repo_paths
 
-    @staticmethod
-    def from_json(idx, jsonstr):
-        p = Paper(idx, filename=None, title=None)
-        p.idx = idx
-        data = json.loads(jsonstr)
-        p.filename = data["filename"]
-        p.title = data["title"]
-        return p
+    def _sqlite_file(self):
+        return self.repo_paths.repo_meta + "/" + SQLITE_FILE
 
-    def as_json(self):
-        d = {"filename": self.filename, "title": self.title}
-        return json.dumps(d)
-
-
-def db_list():
-    conn = sqlite3.connect(sqlite_file())
-    # TODO: handle error if connect fails
-    c = conn.cursor()
-    r = [Paper.from_json(j[0], j[1]) for j in sorted([i for i in c.execute("SELECT idx, json FROM papers")])]
-    conn.close()
-    # TODO: handle db errors
-    return r
+    def db_list(self):
+        conn = sqlite3.connect(self._sqlite_file())
+        # TODO: handle error if connect fails
+        c = conn.cursor()
+        r = [Paper.from_json(j[0], j[1]) for j in sorted([i for i in c.execute("SELECT idx, json FROM papers")])]
+        conn.close()
+        # TODO: handle db errors
+        return r
 
 
 def db_add_paper(p):
@@ -186,49 +206,11 @@ def db_get(idx):
     return Paper.from_json(idx, r[0])
 
 
-def create_config():
-    d = {"version": "0.0.1"}
-    cfgfile = REPO_NAME + "/" + CONFIG_FILE
-    f = open(cfgfile, "w")
-    f.write(json.dumps(d))
-    f.close()
-
-
-def write_config(d):
-    home = str(Path.home()) + "/" + HOME_DIR
-    n = home + "/" + HOME_FILE
-    f = open(n, "w")
-    f.write(json.dumps(d))
-    f.close()
-
-
-def read_config():
-    home = str(Path.home()) + "/" + HOME_DIR
-    if not os.path.exists(home):
-        os.mkdir(home)
-    n = home + "/" + HOME_FILE
-    if not os.path.exists(n):
-        d = {"cfg_version": "0.0.1", "default_repo": "null"}
-        write_config(d)
-    f = open(n, "r")
-    r = json.loads(f.read())
-    f.close()
-    return r
-
-
-def update_default_repo():
-    d = read_config()
-    if not os.path.exists(REPO_NAME):
-        print("Not in a repository.", file=sys.stderr)
-        sys.exit(1)
-    d["default_repo"] = os.getcwd()
-    write_config(d)
-
-
 def cmd_init(args):
+    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
     create_directory()
-    create_config()
-    update_default_repo()
+    c.create_config()
+    c.update_default_repo()
     db_create()
     print("Repository created.")
 
@@ -418,10 +400,8 @@ def cmd_fetch(args):
         print_papers([p])
 
 
-def show_pdf(p):
-    #print("File :", p.filename)
-    #print("Title:", p.title)
-    Popen([VIEWER, repo_path() + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
+def show_pdf(p, repo_paths):
+    Popen([VIEWER, repo_paths.repo_pdf + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
 
 
 def cmd_read(args):
@@ -437,10 +417,13 @@ def cmd_read(args):
 
 
 def exists_in(p, q):
-    r = re.compile(q.lower())
-    if r.search(p.title.lower()):
-        return True
-    return False
+    try:
+        r = re.compile(q.lower())
+        if r.search(p.title.lower()):
+            return True
+        return False
+    except Exception:
+        return False
 
 
 def filter_list(l, query):
@@ -463,13 +446,16 @@ def cmd_search(args):
         print_papers(r)
 
 
-def cmd_pop():
+def cmd_last(args):
+    p = -1
+    if len(args) > 0:
+        p = -int(args[0])
     assert_in_repo()
     r = db_list()
     if len(r) == 0:
         print("empty")
         return
-    show_pdf(r[-1])
+    show_pdf(r[p])
 
 
 def cmd_add(args):
@@ -505,13 +491,9 @@ def read_key():
     return c
 
 
-def cursor_up(n):
-    # http://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html
-    print('\033[' + str(n) + 'A')
-
-
-def cmd_select(args):
-    r = db_list()
+def cmd_select(args, repo_paths):
+    db = DB(repo_paths)
+    r = db.db_list()
     if len(r) == 0:
         print("empty")
         sys.exit(0)
@@ -548,7 +530,7 @@ def cmd_select(args):
         # search line
         sys.stdout.write(empty_line() + "\r")
         if in_search or len(search) > 0:
-            sys.stdout.write("search: " + search)
+            sys.stdout.write("search: " + search + "▃")
             sys.stdout.flush()
 
         k = read_key()
@@ -568,27 +550,27 @@ def cmd_select(args):
                     selected += 1
                 cursor_up(initial_window_rows + 1)
             elif ord(k) == 10:
-                show_pdf(papers[view + selected])
+                show_pdf(papers[view + selected], repo_paths)
                 cursor_up(initial_window_rows+ 1)
             elif ord(k) == 27 or k == 'q':
                 break
             elif k == 's':
                 cursor_up(initial_window_rows + 1)
                 in_search = True
-                cursor_on()
+                #cursor_on()
             else:
                 cursor_up(initial_window_rows + 1)
         else:
             update_search = False
             if ord(k) == 27:
                 in_search = False
-                cursor_off()
+                #cursor_off()
                 search = ""
                 cursor_up(initial_window_rows + 1)
                 update_search = True
             elif ord(k) == 10:
                 in_search= False
-                cursor_off()
+                #cursor_off()
                 cursor_up(initial_window_rows + 1)
             elif ord(k) == 127:
                 search = search[:-1]
@@ -614,13 +596,48 @@ def cmd_select(args):
 
 
 def cmd_default():
-    update_default_repo()
+    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+    c.update_default_repo()
+
+
+def read_key():
+    import tty, fcntl, select
+
+    fd = sys.stdin.fileno()
+    tty.setcbreak(fd)
+
+    #orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
+    #fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
+
+    try:
+        n = 0
+        while True:
+            print("OK")
+            #select.select([sys.stdin], [], [])
+            while True:
+                ch = sys.stdin.read()
+                print("->", n, ch)
+                n += 1
+
+        print("DONE")
+    finally:
+        pass
+        #termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+    return ch
 
 
 def parse_command():
+    #while True:
+    #    c = read_key()
+    #    print(c)
+
+
+    # no arguments given -> show select menu
     if len(sys.argv) < 2:
-        cmd_select(sys.argv[2:])
+        cmd_select(sys.argv[2:], paths())
         sys.exit(0)
+
     c = sys.argv[1]
     if c == "init":
         cmd_init(sys.argv[2:])
@@ -632,11 +649,11 @@ def parse_command():
         cmd_read(sys.argv[2:])
     elif c == "search":
         cmd_search(sys.argv[2:])
-    elif c == "pop":
-        cmd_pop()
+    elif c == "last":
+        cmd_last(sys.argv[2:])
     elif c == "add":
         cmd_add(sys.argv[2:])
-    elif c == "help":
+    elif c == "help" or c == "--help" or c == "-h":
         help(0)
     elif c == "default":
         cmd_default()
