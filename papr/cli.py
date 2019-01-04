@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+# Settings -> Project: papr -> Project Structure
+#   use only papr as "Sources"
+
+import sys
 import math
 import os
 import re
 import shutil
 import sqlite3
-import sys
 import termios
 import urllib
 from collections import namedtuple
@@ -15,9 +18,9 @@ import urllib.request
 from bs4 import BeautifulSoup
 import termcolor
 
-from .config import Config
-from .paper import Paper
-from .console import cursor_off, cursor_on, cursor_up
+from lib.config import Config
+from lib.paper import Paper
+from lib.console import cursor_off, cursor_on, cursor_up
 
 REPO_NAME = ".paper"
 SQLITE_FILE = "paper.db"
@@ -490,7 +493,6 @@ def read_key():
     termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
     return c
 
-
 def cmd_select(args, repo_paths):
     db = DB(repo_paths)
     r = db.db_list()
@@ -600,39 +602,7 @@ def cmd_default():
     c.update_default_repo()
 
 
-def read_key():
-    import tty, fcntl, select
-
-    fd = sys.stdin.fileno()
-    tty.setcbreak(fd)
-
-    #orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
-    #fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
-
-    try:
-        n = 0
-        while True:
-            print("OK")
-            #select.select([sys.stdin], [], [])
-            while True:
-                ch = sys.stdin.read()
-                print("->", n, ch)
-                n += 1
-
-        print("DONE")
-    finally:
-        pass
-        #termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-
-    return ch
-
-
 def parse_command():
-    #while True:
-    #    c = read_key()
-    #    print(c)
-
-
     # no arguments given -> show select menu
     if len(sys.argv) < 2:
         cmd_select(sys.argv[2:], paths())

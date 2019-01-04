@@ -1,3 +1,29 @@
+# Install from local
+
+    pip3 uninstall -y papr
+    rm -rf build dist papr.egg-info
+    python3 setup.py sdist bdist_wheel
+    pip3 install --user dist/*.whl
+    rm -rf build dist papr.egg-info
+
+or simply run:
+
+    make install
+
+# Test
+
+This command uses `cli.py` from the `papr` directory to build a new repository in `/tmp/repo`. 
+
+    make newrepo
+    
+# Userful link
+
+It's very useful to have symbolic link to `papr/cli.py`. I'm using `~/bin/papr.py` which points to the dev version of `cli.py`.
+
+
+
+# pip
+
 From https://packaging.python.org/tutorials/packaging-projects/
 
 Make sure you have the latest versions of setuptools and wheel installed:
@@ -45,5 +71,4 @@ python3 -m pip install --no-cache-dir papr
 
 ----------------
 
-rm -rf build dist && python3 setup.py sdist bdist_wheel && pip3 install dist/*.whl
 
