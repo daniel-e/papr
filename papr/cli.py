@@ -11,8 +11,6 @@ import shutil
 import sqlite3
 import termios
 import urllib
-from collections import namedtuple
-from pathlib import Path
 from subprocess import Popen, DEVNULL
 import urllib.request
 from bs4 import BeautifulSoup
@@ -21,8 +19,8 @@ import termcolor
 from lib.config import Config
 from lib.paper import Paper
 from lib.console import cursor_off, cursor_on, cursor_up
+from lib.repository import Repository
 
-REPO_NAME = ".paper"
 SQLITE_FILE = "paper.db"
 CONFIG_FILE = "paper.cfg"
 VIEWER = "/usr/bin/evince"
@@ -30,29 +28,6 @@ HOME_DIR = ".papr"
 HOME_FILE = "papr.cfg"
 
 
-Paths = namedtuple("Paths", ['home', 'repo_pdf', 'repo_meta'])
-
-
-def paths():
-    """
-    Terminates if neither the current directory is a repository nor a
-    default reporitory does exist.
-    :return:
-    """
-    home = str(Path.home()) + "/" + HOME_DIR  # ~/.papr/
-    repo_pdf = os.getcwd()                    # $PWD
-    repo_meta = repo_pdf + "/" + REPO_NAME    # $PWD/.paper/
-
-    if not os.path.exists(repo_meta):
-        c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
-        repo_pdf = c.read_config()["default_repo"]
-        repo_meta = repo_pdf + "/" + REPO_NAME
-
-    if not os.path.exists(repo_meta):
-        print("No repository.", file=sys.stderr)
-        sys.exit(1)
-
-    return Paths(home, repo_pdf, repo_meta)
 
 
 def command():
@@ -96,26 +71,26 @@ def help(exitcode=0):
 
 
 def assert_in_repo():
-    if not os.path.exists(REPO_NAME):
+    if not os.path.exists(REPO_META):
         print("You are not in a paper repository.", file=sys.stderr)
         sys.exit(1)
 
 
 def create_directory():
-    if os.path.exists(REPO_NAME):
+    if os.path.exists(REPO_META):
         print("You are already in a paper repository.", file=sys.stderr)
         sys.exit(1)
     try:
-        os.mkdir(REPO_NAME)
+        os.mkdir(REPO_META)
     except OSError as err:
         print("Error", err)
         sys.exit(1)
 
 
 def repo_path():
-    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
     r = ""
-    if os.path.exists(REPO_NAME):
+    if os.path.exists(REPO_META):
         r = "."
     else:
         d = c.read_config()
@@ -128,17 +103,17 @@ def repo_path():
 
 
 def repo_idx_path():
-    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
     r = ""
-    if os.path.exists(REPO_NAME):
-        r = REPO_NAME
+    if os.path.exists(REPO_META):
+        r = REPO_META
     else:
         d = c.read_config()
         n = d["default_repo"]
         if n == "null":
             print("No repository.", file=sys.stderr)
             sys.exit(1)
-        r = n + "/" + REPO_NAME
+        r = n + "/" + REPO_META
     return r
 
 
@@ -210,7 +185,7 @@ def db_get(idx):
 
 
 def cmd_init(args):
-    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
     create_directory()
     c.create_config()
     c.update_default_repo()
@@ -598,7 +573,7 @@ def cmd_select(args, repo_paths):
 
 
 def cmd_default():
-    c = Config(REPO_NAME, CONFIG_FILE, HOME_DIR)
+    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
     c.update_default_repo()
 
 
@@ -632,6 +607,12 @@ def parse_command():
 
 
 def main():
+    conf = Config()
+    repo = Repository(conf)
+    if not repo.is_valid():
+        print("No repository.")
+        sys.exit(1)
+
     parse_command()
 
 

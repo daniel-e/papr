@@ -1,46 +1,36 @@
 from pathlib import Path
 import json
-import sys
 import os
 
 
 class Config:
-    def __init__(self, repo, configfile, homedir):
-        self.repo = repo
-        self.configfile = configfile
-        self.homedir = homedir
+    def __init__(self):
+        self.config_path = str(Path.home()) + "/.papr"
+        self.config_file = self.config_path + "/papr.cfg"
+        self._read_config()
 
-    def create_config(self):
-        d = {"version": "0.0.1"}
-        cfgfile = self.repo + "/" + self.configfile
-        f = open(cfgfile, "w")
-        f.write(json.dumps(d))
+    def get(self, key):
+        return self.config[key]
+
+    def _read_config(self):
+        if not os.path.exists(self.config_path):
+            os.mkdir(self.config_path)
+        if not os.path.exists(self.config_file):
+            self._create_default()
+        f = open(self.config_file, "r")
+        self.config = json.loads(f.read())
         f.close()
 
-    def _write_config(self, d):
-        home = str(Path.home()) + "/" + self.homedir
-        n = home + "/" + self.homedir
-        f = open(n, "w")
-        f.write(json.dumps(d))
+    def _create_default(self):
+        self.config = {"cfg_version": "0.0.1", "default_repo": "null"}
+        self._write_config()
+
+    def _write_config(self):
+        f = open(self.config_file, "w")
+        f.write(json.dumps(self.config))
         f.close()
 
-    def read_config(self):
-        home = str(Path.home()) + "/" + self.homedir
-        if not os.path.exists(home):
-            os.mkdir(home)
-        n = home + "/" + self.homedir
-        if not os.path.exists(n):
-            d = {"cfg_version": "0.0.1", "default_repo": "null"}
-            self._write_config(d)
-        f = open(n, "r")
-        r = json.loads(f.read())
-        f.close()
-        return r
+    def set_default_repo(self, path):
+        self.config["default_repo"] = path
+        self._write_config()
 
-    def update_default_repo(self):
-        d = self.read_config()
-        if not os.path.exists(self.repo):
-            print("Not in a repository.", file=sys.stderr)
-            sys.exit(1)
-        d["default_repo"] = os.getcwd()
-        self._write_config(d)
