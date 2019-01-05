@@ -14,7 +14,8 @@ or simply run:
 
 This command uses `cli.py` from the `papr` directory to build a new repository in `/tmp/repo`. 
 
-    make newrepo
+    make preparedocker
+    make runtest
     
 # Userful link
 

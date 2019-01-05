@@ -9,3 +9,9 @@ install: clean
 
 newrepo:
 	@./scripts/build_testrepo.sh
+
+preparedocker:
+	docker build -t papr/1 .
+
+runtest:
+	docker run -t -i --rm papr/1

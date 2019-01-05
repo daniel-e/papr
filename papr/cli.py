@@ -21,6 +21,7 @@ from lib.paper import Paper
 from lib.console import cursor_off, cursor_on, cursor_up
 from lib.repository import Repository
 
+
 SQLITE_FILE = "paper.db"
 CONFIG_FILE = "paper.cfg"
 VIEWER = "/usr/bin/evince"
@@ -73,17 +74,6 @@ def help(exitcode=0):
 def assert_in_repo():
     if not os.path.exists(REPO_META):
         print("You are not in a paper repository.", file=sys.stderr)
-        sys.exit(1)
-
-
-def create_directory():
-    if os.path.exists(REPO_META):
-        print("You are already in a paper repository.", file=sys.stderr)
-        sys.exit(1)
-    try:
-        os.mkdir(REPO_META)
-    except OSError as err:
-        print("Error", err)
         sys.exit(1)
 
 
@@ -182,15 +172,6 @@ def db_get(idx):
     if not r:
         return None
     return Paper.from_json(idx, r[0])
-
-
-def cmd_init(args):
-    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
-    create_directory()
-    c.create_config()
-    c.update_default_repo()
-    db_create()
-    print("Repository created.")
 
 
 def rows():
@@ -577,16 +558,39 @@ def cmd_default():
     c.update_default_repo()
 
 
-def parse_command():
+# ---------------------------------------------------------------------
+
+
+def cmd_init(args, conf, repo):
+    # Check that the current directory isn't already a repository.
+    if repo.is_local_repository():
+        print("You are already in a repository.", file=sys.stderr)
+        sys.exit(1)
+    # Create repository.
+    repo.init()
+    print("Repository created.")
+
+
+def parse_command(conf, repo):
+    if len(sys.argv) > 1:
+        # One argument given.
+        c = sys.argv[1]
+        if c == "init":
+            cmd_init(sys.argv[2:], conf, repo)
+            return
+
+
+    if not repo.is_valid():
+        print("No repository.")
+        sys.exit(1)
+
     # no arguments given -> show select menu
     if len(sys.argv) < 2:
         cmd_select(sys.argv[2:], paths())
         sys.exit(0)
 
     c = sys.argv[1]
-    if c == "init":
-        cmd_init(sys.argv[2:])
-    elif c == "list":
+    if c == "list":
         cmd_list(sys.argv[2:])
     elif c == "fetch":
         cmd_fetch(sys.argv[2:])
@@ -607,13 +611,14 @@ def parse_command():
 
 
 def main():
+    # Reads the configuration from "~/.papr/". Creates a default config if
+    # it doesn't exist yet.
     conf = Config()
-    repo = Repository(conf)
-    if not repo.is_valid():
-        print("No repository.")
-        sys.exit(1)
-
-    parse_command()
+    # If we are in a repository create an instance of this repository. If we
+    # are not in a repository create an instance of the default repository. If
+    # there is no default repository, Repository.is_valid() will return False.
+    r = Repository(conf)
+    parse_command(conf, r)
 
 
 if __name__ == "__main__":
