@@ -3,7 +3,9 @@
 # Test config.
 ./papr/tests.py
 
+# =============================================================================================
 # 1) Test "papr init"
+# =============================================================================================
 
 #a) check that a repository is created in a directory which is not a repository yet
 mkdir /tmp/repo

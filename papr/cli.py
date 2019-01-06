@@ -449,12 +449,14 @@ def read_key():
     termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
     return c
 
-def cmd_select(args, repo_paths):
-    db = DB(repo_paths)
-    r = db.db_list()
+
+def cmd_select(args, repo):
+    r = repo.list()
     if len(r) == 0:
         print("empty")
         sys.exit(0)
+
+
     if len(args) > 0:
         r = filter_list(r, args[0])
     print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search", "white", attrs=["bold"]))
@@ -561,7 +563,7 @@ def cmd_default():
 # ---------------------------------------------------------------------
 
 
-def cmd_init(args, conf, repo):
+def cmd_init(repo):
     # Check that the current directory isn't already a repository.
     if repo.is_local_repository():
         print("You are already in a repository.", file=sys.stderr)
@@ -573,20 +575,19 @@ def cmd_init(args, conf, repo):
 
 def parse_command(conf, repo):
     if len(sys.argv) > 1:
-        # One argument given.
         c = sys.argv[1]
         if c == "init":
-            cmd_init(sys.argv[2:], conf, repo)
+            cmd_init(repo)
             return
 
-
+    # For all other commands we need to have a valid repository.
     if not repo.is_valid():
         print("No repository.")
         sys.exit(1)
 
     # no arguments given -> show select menu
     if len(sys.argv) < 2:
-        cmd_select(sys.argv[2:], paths())
+        cmd_select(sys.argv[2:], repo)
         sys.exit(0)
 
     c = sys.argv[1]

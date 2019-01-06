@@ -12,13 +12,20 @@ class Repository:
         self.db = None
         self.config = config
         self._init_paths()
+        if self.is_valid():
+            self.db = Db(self.repo_meta_path)
 
     def init(self):
+        """
+        Creates directories, databases and updates configuration but does not change
+        this isntance into a valid repository.
+        :return:
+        """
         # Update configuration: set default repository.
         self.config.set_default_repo(os.getcwd())
         # Create database.
         os.mkdir(os.getcwd() + "/" + REPO_META)
-        self.db = Db(os.getcwd() + "/" + REPO_META)
+        self.db = Db.create(os.getcwd() + "/" + REPO_META)
 
     def is_local_repository(self):
         return self.local
@@ -27,24 +34,25 @@ class Repository:
         """
         :return: True if this object represents a valid repository.
         """
-        return self.repo_meta_path and self.repo_pdf_path
+        return self.repo_meta_path is not None and self.repo_pdf_path is not None
 
     def _init_paths(self):
         # First check if the current working directory is a repository.
-        repo_pdf = os.getcwd()  # $PWD
-        repo_meta = repo_pdf + "/" + REPO_META  # $PWD/.paper/
+        self.repo_pdf_path = os.getcwd()  # $PWD
+        self.repo_meta_path = self.repo_pdf_path + "/" + REPO_META  # $PWD/.paper/
         self.local = True
 
-        if not os.path.exists(repo_meta):
+        if not os.path.exists(self.repo_meta_path):
             # If it does not exist read the location of the repository from
             # the configuration.
-            repo_pdf = self.config.get("default_repo")
-            repo_meta = repo_pdf + "/" + REPO_META
-            self.repo_pdf_path = repo_pdf
-            self.repo_meta_path = repo_meta
+            self.repo_pdf_path = self.config.get("default_repo")
+            self.repo_meta_path = self.repo_meta_path + "/" + REPO_META
             self.local = False
 
-        if not os.path.exists(repo_meta):
+        if not os.path.exists(self.repo_meta_path):
             self.repo_pdf_path = None
             self.repo_meta_path = None
             self.local = None
+
+    def list(self):
+        return self.db.list()
