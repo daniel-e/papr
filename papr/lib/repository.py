@@ -1,11 +1,13 @@
 import os
 from lib.db import Db
+from lib.config import Config
+from lib.paper import Paper
 
 REPO_META = ".paper"
 
 
 class Repository:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.repo_pdf_path = None
         self.repo_meta_path = None
         self.local = None
@@ -36,6 +38,9 @@ class Repository:
         """
         return self.repo_meta_path is not None and self.repo_pdf_path is not None
 
+    def pdf_path(self):
+        return self.repo_pdf_path
+
     def _init_paths(self):
         # First check if the current working directory is a repository.
         self.repo_pdf_path = os.getcwd()  # $PWD
@@ -46,7 +51,7 @@ class Repository:
             # If it does not exist read the location of the repository from
             # the configuration.
             self.repo_pdf_path = self.config.get("default_repo")
-            self.repo_meta_path = self.repo_meta_path + "/" + REPO_META
+            self.repo_meta_path = self.repo_pdf_path + "/" + REPO_META
             self.local = False
 
         if not os.path.exists(self.repo_meta_path):
@@ -56,3 +61,13 @@ class Repository:
 
     def list(self):
         return self.db.list()
+
+    def next_id(self):
+        return self.db.next_id()
+
+    def add_paper(self, p: Paper):
+        return self.db.add_paper(p)
+
+    def get_paper(self, idx):
+        return self.db.get(idx)
+

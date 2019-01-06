@@ -14,4 +14,4 @@ preparedocker:
 	docker build -t papr/1 .
 
 runtest:
-	docker run -t -i --rm papr/1
+	docker run -t -i -e DISPLAY=${DISPLAY} -v ${PWD}:/host/ -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1

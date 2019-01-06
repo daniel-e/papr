@@ -8,7 +8,6 @@ import math
 import os
 import re
 import shutil
-import sqlite3
 import termios
 import urllib
 from subprocess import Popen, DEVNULL
@@ -20,213 +19,91 @@ from lib.config import Config
 from lib.paper import Paper
 from lib.console import cursor_off, cursor_on, cursor_up
 from lib.repository import Repository
+from lib.term import rows, empty_line, print_papers, print_header, print_paper
+from lib.help import help
+from lib.cmd_add import cmd_add
 
 
-SQLITE_FILE = "paper.db"
-CONFIG_FILE = "paper.cfg"
 VIEWER = "/usr/bin/evince"
-HOME_DIR = ".papr"
-HOME_FILE = "papr.cfg"
 
 
+def read_key():
+    fd = sys.stdin.fileno()
+    oldterm = termios.tcgetattr(fd)
+    newattr = termios.tcgetattr(fd)
+    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+    termios.tcsetattr(fd, termios.TCSANOW, newattr)
+    c = None
+    try:
+        c = sys.stdin.read(1)
+    except IOError:
+        pass
+    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+    return c
 
 
-def command():
-    s = sys.argv[0]
-    return s if s.rfind("/") < 0 else s[s.rfind("/")+1:]
-
-
-def help(exitcode=0):
-    print("Usage: " + command() + " [search regex] | <command> [<args>]\n")
-    print("Commands")
-    hr()
-    print("  help       This help message.")
-    print("\nRepository commands")
-    print("  init       Create a new repository in the current directory and sets it to")
-    print("             the default repository.\n")
-    print("  default    Set the current repository as default repository.")
-    print("\nList papers")
-    print("  list       List all tracked papers in the current repository.\n")
-    print("  search <regex>")
-    print("             List all papers for which the regex matches the title.")
-    print("\nReading papers")
-    print("  read <id>  Read paper with given ID.\n")
-    print("  last [<n>] Read the paper with the n-th largest ID. default: n = 1")
-    print("\nAdding papers")
-    print("  fetch  <file> <title>")
-    print("             Add a paper to the repository.  The file is copied to the")
-    print("             repository. Filename will be <idx>_<normalized_title>.pdf")
-    print("")
-    print("         <url> [title]")
-    print("             Download a paper and add it to the repository. If the URL points")
-    print("             to a pdf title is required. If the URL points to a web page which")
-    print("             contains the title and a link to the pdf in a recognized format")
-    print("             title is not required and the pdf will be downloaded.")
-    print("")
-    print("  add    <file> [idx]")
-    print("             Add a file which is located in the repository directory but which")
-    print("             is not tracked yet. The filename does not change and will be used")
-    print("             as the title without the extension.")
-    print()
-    sys.exit(exitcode)
-
-
-def assert_in_repo():
-    if not os.path.exists(REPO_META):
-        print("You are not in a paper repository.", file=sys.stderr)
+def cmd_search(args, repo: Repository):
+    if len(args) == 0:
+        print("You need to specify a query.")
         sys.exit(1)
-
-
-def repo_path():
-    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
-    r = ""
-    if os.path.exists(REPO_META):
-        r = "."
-    else:
-        d = c.read_config()
-        n = d["default_repo"]
-        if n == "null":
-            print("No repository.", file=sys.stderr)
-            sys.exit(1)
-        r = n
-    return r
-
-
-def repo_idx_path():
-    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
-    r = ""
-    if os.path.exists(REPO_META):
-        r = REPO_META
-    else:
-        d = c.read_config()
-        n = d["default_repo"]
-        if n == "null":
-            print("No repository.", file=sys.stderr)
-            sys.exit(1)
-        r = n + "/" + REPO_META
-    return r
-
-
-def sqlite_file():
-    return repo_idx_path() + "/" + SQLITE_FILE
-
-
-def db_create():
-    conn = sqlite3.connect(sqlite_file())
-    # TODO: handle error if connect fails
-    c = conn.cursor()
-    c.execute("CREATE TABLE papers (idx integer primary key, json text)")
-    conn.commit()
-    conn.close()
-    # TODO: handle db errors
-
-
-class DB:
-    def __init__(self, repo_paths):
-        self.repo_paths = repo_paths
-
-    def _sqlite_file(self):
-        return self.repo_paths.repo_meta + "/" + SQLITE_FILE
-
-    def db_list(self):
-        conn = sqlite3.connect(self._sqlite_file())
-        # TODO: handle error if connect fails
-        c = conn.cursor()
-        r = [Paper.from_json(j[0], j[1]) for j in sorted([i for i in c.execute("SELECT idx, json FROM papers")])]
-        conn.close()
-        # TODO: handle db errors
-        return r
-
-
-def db_add_paper(p):
-    conn = sqlite3.connect(sqlite_file())
-    # TODO: handle error if connect fails
-    c = conn.cursor()
-    data = (p.idx, p.as_json())
-    c.execute("INSERT INTO papers (idx, json) VALUES (?, ?)", data)
-    conn.commit()
-    conn.close()
-    # TODO: handle db errors
-
-
-def db_next_id():
-    conn = sqlite3.connect(sqlite_file())
-    # TODO: handle error if connect fails
-    c = conn.cursor()
-    r = [i[0] for i in c.execute("SELECT idx FROM papers")]
-    conn.close()
-    # TODO: handle db errors
+    r = repo.list()
     if len(r) == 0:
-        return 1
-    return max(r) + 1
-
-
-def db_get(idx):
-    conn = sqlite3.connect(sqlite_file())
-    # TODO: handle error if connect fails
-    c = conn.cursor()
-    r = c.execute("SELECT json FROM papers WHERE idx=" + str(idx))
-    r = r.fetchone()
-    conn.close()
-    # TODO: handle db errors
-    if not r:
-        return None
-    return Paper.from_json(idx, r[0])
-
-
-def rows():
-    _, rows = os.get_terminal_size(0)
-    return rows
-
-
-def hr():
-    cols, _ = os.get_terminal_size(0)
-    print("─" * cols)
-
-
-def print_header():
-    cols, _ = os.get_terminal_size(0)
-    print("Id    Title " + " " * (cols - 12))
-    hr()
-    return cols
-
-
-def empty_line():
-    cols, _ = os.get_terminal_size(0)
-    return " " * cols
-
-
-def print_paper(paper, selected = False):
-    cols, _ = os.get_terminal_size(0)
-    # 5 columns for id
-    # 1 columns for space
-    # cols - (5 + 1) columns for filename
-    n = cols - (5 + 1)
-    f = paper.title
-    if len(f) > n:
-        f = f[:n - 3] + "..."
-    s = "{:5d} {}".format(paper.idx, f)
-    if len(s) < cols:
-        s = s + (" " * (cols - len(s)))
-    if selected:
-        print(termcolor.colored(s, 'white', 'on_red', attrs=["bold"]))
+        print("empty")
+        return
+    r = filter_list(r, args[0])
+    if len(r) == 0:
+        print("Not found.")
     else:
-        print(termcolor.colored(s, 'white'))
+        print_papers(r)
 
 
-def print_papers(papers):
-    for paper in papers:
-        print_paper(paper)
+def cmd_last(args, repo: Repository):
+    p = -1
+    if len(args) > 0:
+        p = -int(args[0])
+    r = repo.list()
+    if len(r) == 0:
+        print("empty")
+        return
+    show_pdf(r[p], repo.pdf_path())
 
 
-def cmd_list(args):
-    assert_in_repo()
-    r = db_list()
+def cmd_read(args, repo):
+    if len(args) == 0:
+        print("You need to specify a paper id.")
+        sys.exit(1)
+    p = repo.get_paper(int(args[0]))
+    if not p:
+        print("Not found.")
+        sys.exit(1)
+    show_pdf(p, repo.pdf_path())
+
+
+def cmd_list(repo):
+    r = repo.list()
     if len(r) == 0:
         print("empty")
     else:
         print_header()
         print_papers(r)
+
+
+def show_pdf(p, repo_path):
+    Popen([VIEWER, repo_path + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
+
+
+def exists_in(p, q):
+    try:
+        r = re.compile(q.lower())
+        if r.search(p.title.lower()):
+            return True
+        return False
+    except Exception:
+        return False
+
+
+def filter_list(l, query):
+    return [i for i in l if exists_in(i, query)]
 
 
 def normalize_title(s):
@@ -237,24 +114,26 @@ def title_as_filename(s):
     return re.sub(r'[^a-z0-9]', "_", re.sub(r'\s+', "_", s.lower()))
 
 
-def prepare_data(title):
+def prepare_data(title: str, repo: Repository):
     title = normalize_title(title)
-    idx = db_next_id()
+    idx = repo.next_id()
     filename = "{:05d}_{}.pdf".format(idx, title_as_filename(title))
     return title, idx, filename
 
 
-def add_local_file(f, args):
+def add_local_file(f: str, args, repo: Repository):
     if len(args) == 0:
         print("For local files you need to specify the title of the paper.")
         sys.exit(1)
-    title, idx, filename = prepare_data(args[0])
+
+    title, idx, filename = prepare_data(args[0], repo)
     if not os.path.exists(filename):
         shutil.copy(f, filename)
     p = Paper(idx=idx, filename=filename, title=title)
-    db_add_paper(p)
+    repo.add_paper(p)
     print("Added paper.")
-    print_papers([p])
+    print("Title:", title)
+    print("Filename:", filename)
 
 
 def is_text_or_html(s):
@@ -318,16 +197,16 @@ def parse_page(data):
     return None, None
 
 
-def cmd_fetch(args):
-    assert_in_repo()
+def cmd_fetch(args, repo: Repository):
     if len(args) == 0:
         print("You need to specify a filename or URL.")
         sys.exit(1)
-    f = args[0]
-    if os.path.exists(f):
-        add_local_file(f, args[1:])
+
+    fname = args[0]
+    if os.path.exists(fname):
+        add_local_file(fname, args[1:], repo)
     else:
-        req = urllib.request.Request(f)
+        req = urllib.request.Request(fname)
         rsp = urllib.request.urlopen(req)
         typ = rsp.getheader("content-type")
         if not is_text_or_html(typ) and len(args) < 2:  # for PDF files we need a title
@@ -347,118 +226,28 @@ def cmd_fetch(args):
         else:
             title = args[1]
 
-        title, idx, filename = prepare_data(title)
+        title, idx, filename = prepare_data(title, repo)
 
         k = open(filename, "w")
         k.buffer.write(data)
         k.close()
 
         p = Paper(idx=idx, filename=filename, title=title)
-        db_add_paper(p)
+        repo.add_paper(p)
         print("Added paper.")
-        print_papers([p])
-
-
-def show_pdf(p, repo_paths):
-    Popen([VIEWER, repo_paths.repo_pdf + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
-
-
-def cmd_read(args):
-    assert_in_repo()
-    if len(args) == 0:
-        print("You need to specify a paper id.")
-        sys.exit(1)
-    p = db_get(int(args[0]))
-    if not p:
-        print("Not found.")
-        sys.exit(1)
-    show_pdf(p)
-
-
-def exists_in(p, q):
-    try:
-        r = re.compile(q.lower())
-        if r.search(p.title.lower()):
-            return True
-        return False
-    except Exception:
-        return False
-
-
-def filter_list(l, query):
-    return [i for i in l if exists_in(i, query)]
-
-
-def cmd_search(args):
-    assert_in_repo()
-    if len(args) == 0:
-        print("You need to specify a query.")
-        sys.exit(1)
-    r = db_list()
-    if len(r) == 0:
-        print("empty")
-        return
-    r = filter_list(r, args[0])
-    if len(r) == 0:
-        print("Not found.")
-    else:
-        print_papers(r)
-
-
-def cmd_last(args):
-    p = -1
-    if len(args) > 0:
-        p = -int(args[0])
-    assert_in_repo()
-    r = db_list()
-    if len(r) == 0:
-        print("empty")
-        return
-    show_pdf(r[p])
-
-
-def cmd_add(args):
-    assert_in_repo()
-    if len(args) == 0:
-        print("You need to specify a filename.")
-        sys.exit(1)
-    filename = args[0]
-    idx = db_next_id()
-    if len(args) > 1:
-        idx = int(args[1])
-    title = filename
-    if title.rfind(".") >= 0:
-        title = title[:title.rfind(".")]
-    p = Paper(idx=idx, filename=filename, title=title)
-    db_add_paper(p)
-    print("Added paper.")
-    print_papers([p])
-
-
-def read_key():
-    fd = sys.stdin.fileno()
-    oldterm = termios.tcgetattr(fd)
-    newattr = termios.tcgetattr(fd)
-    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSANOW, newattr)
-    c = None
-    try:
-        c = sys.stdin.read(1)
-    except IOError:
-        pass
-    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-    return c
+        print("Title:", title)
+        print("Filename:", filename)
 
 
 def cmd_select(args, repo):
     r = repo.list()
     if len(r) == 0:
-        print("empty")
+        print("Repository is empty.")
         sys.exit(0)
-
 
     if len(args) > 0:
         r = filter_list(r, args[0])
+
     print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search", "white", attrs=["bold"]))
     print_header()
     m = rows() - 4 - 1             # have added -1 as otherwise the header flickers sometimes when scrolling
@@ -510,27 +299,24 @@ def cmd_select(args, repo):
                     selected += 1
                 cursor_up(initial_window_rows + 1)
             elif ord(k) == 10:
-                show_pdf(papers[view + selected], repo_paths)
+                show_pdf(papers[view + selected], repo.pdf_path())
                 cursor_up(initial_window_rows+ 1)
             elif ord(k) == 27 or k == 'q':
                 break
             elif k == 's':
                 cursor_up(initial_window_rows + 1)
                 in_search = True
-                #cursor_on()
             else:
                 cursor_up(initial_window_rows + 1)
         else:
             update_search = False
             if ord(k) == 27:
                 in_search = False
-                #cursor_off()
                 search = ""
                 cursor_up(initial_window_rows + 1)
                 update_search = True
             elif ord(k) == 10:
                 in_search= False
-                #cursor_off()
                 cursor_up(initial_window_rows + 1)
             elif ord(k) == 127:
                 search = search[:-1]
@@ -555,15 +341,15 @@ def cmd_select(args, repo):
     print()
 
 
-def cmd_default():
-    c = Config(REPO_META, CONFIG_FILE, HOME_DIR)
-    c.update_default_repo()
+def cmd_default(conf: Config, repo: Repository) -> None:
+    if not repo.is_local_repository():
+        print("You are not in a repository.")
+        sys.exit(1)
+
+    conf.set_default_repo(repo.pdf_path())
 
 
-# ---------------------------------------------------------------------
-
-
-def cmd_init(repo):
+def cmd_init(repo: Repository) -> None:
     # Check that the current directory isn't already a repository.
     if repo.is_local_repository():
         print("You are already in a repository.", file=sys.stderr)
@@ -573,14 +359,17 @@ def cmd_init(repo):
     print("Repository created.")
 
 
-def parse_command(conf, repo):
+def parse_command(conf: Config, repo: Repository) -> None:
     if len(sys.argv) > 1:
         c = sys.argv[1]
         if c == "init":
             cmd_init(repo)
             return
+        elif c == "default":
+            cmd_default(conf, repo)
+            return
 
-    # For all other commands we need to have a valid repository.
+    # For all other commands we need a valid repository.
     if not repo.is_valid():
         print("No repository.")
         sys.exit(1)
@@ -592,26 +381,24 @@ def parse_command(conf, repo):
 
     c = sys.argv[1]
     if c == "list":
-        cmd_list(sys.argv[2:])
+        cmd_list(repo)
     elif c == "fetch":
-        cmd_fetch(sys.argv[2:])
+        cmd_fetch(sys.argv[2:], repo)
     elif c == "read":
-        cmd_read(sys.argv[2:])
+        cmd_read(sys.argv[2:], repo)
     elif c == "search":
-        cmd_search(sys.argv[2:])
+        cmd_search(sys.argv[2:], repo)
     elif c == "last":
-        cmd_last(sys.argv[2:])
+        cmd_last(sys.argv[2:], repo)
     elif c == "add":
-        cmd_add(sys.argv[2:])
+        cmd_add(sys.argv[2:], repo)
     elif c == "help" or c == "--help" or c == "-h":
         help(0)
-    elif c == "default":
-        cmd_default()
     else:
-        cmd_select(sys.argv[2:])
+        help(1)
 
 
-def main():
+def main() -> None:
     # Reads the configuration from "~/.papr/". Creates a default config if
     # it doesn't exist yet.
     conf = Config()

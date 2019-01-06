@@ -28,3 +28,36 @@ class Db:
         conn.close()
         # TODO: handle db errors
         return r
+
+    def next_id(self):
+        conn = sqlite3.connect(self.filename())
+        # TODO: handle error if connect fails
+        c = conn.cursor()
+        r = [i[0] for i in c.execute("SELECT idx FROM papers")]
+        conn.close()
+        # TODO: handle db errors
+        if len(r) == 0:
+            return 1
+        return max(r) + 1
+
+    def add_paper(self, p: Paper):
+        conn = sqlite3.connect(self.filename())
+        # TODO: handle error if connect fails
+        c = conn.cursor()
+        data = (p.idx, p.as_json())
+        c.execute("INSERT INTO papers (idx, json) VALUES (?, ?)", data)
+        conn.commit()
+        conn.close()
+        # TODO: handle db errors
+
+    def get(self, idx):
+        conn = sqlite3.connect(self.filename())
+        # TODO: handle error if connect fails
+        c = conn.cursor()
+        r = c.execute("SELECT json FROM papers WHERE idx=" + str(idx))
+        r = r.fetchone()
+        conn.close()
+        # TODO: handle db errors
+        if not r:
+            return None
+        return Paper.from_json(idx, r[0])
