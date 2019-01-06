@@ -1,5 +1,5 @@
 import sys
-from lib.term import _hr
+from lib.termout import _hr
 
 
 def command():

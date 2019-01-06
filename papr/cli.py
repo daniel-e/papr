@@ -8,7 +8,6 @@ import math
 import os
 import re
 import shutil
-import termios
 import urllib
 from subprocess import Popen, DEVNULL
 import urllib.request
@@ -19,27 +18,13 @@ from lib.config import Config
 from lib.paper import Paper
 from lib.console import cursor_off, cursor_on, cursor_up
 from lib.repository import Repository
-from lib.term import rows, empty_line, print_papers, print_header, print_paper
+from lib.termout import rows, empty_line, print_papers, print_header, print_paper
+from lib.termin import read_key
 from lib.help import help
 from lib.cmd_add import cmd_add
 
 
 VIEWER = "/usr/bin/evince"
-
-
-def read_key():
-    fd = sys.stdin.fileno()
-    oldterm = termios.tcgetattr(fd)
-    newattr = termios.tcgetattr(fd)
-    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSANOW, newattr)
-    c = None
-    try:
-        c = sys.stdin.read(1)
-    except IOError:
-        pass
-    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-    return c
 
 
 def cmd_search(args, repo: Repository):
