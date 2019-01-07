@@ -12,6 +12,11 @@ def rows():
     return rows
 
 
+def cols():
+    cols, _ = os.get_terminal_size(0)
+    return cols
+
+
 def empty_line():
     cols, _ = os.get_terminal_size(0)
     return " " * cols

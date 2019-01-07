@@ -1,13 +1,16 @@
 import sys
-import time
-
 import termcolor
 
 from lib.console import cursor_on, cursor_up, cursor_off
-from lib.edit import editor, notes_of_paper
+from lib.edit import notes_of_paper
 from lib.termin import read_key
-from lib.termout import rows, empty_line, print_paper, print_header
+from lib.termout import rows, empty_line, print_paper, print_header, cols
 from lib.tools import filter_list, show_pdf
+
+
+def colwidth(s: str):
+    c = cols()
+    return s + (" " * (c - len(s)))
 
 
 def run_ui(args, repo):
@@ -34,9 +37,9 @@ def run_ui(args, repo):
     while True:
         cursor_up(4)
         if in_search:
-            print(termcolor.colored("ESC: cancel + back to selection mode | ENTER: back to selection mode", "white", "on_blue", attrs=["bold"]))
+            print(termcolor.colored(colwidth("ESC: cancel + back to selection mode | ENTER: back to selection mode"), "white", "on_blue", attrs=["bold"]))
         else:
-            print(termcolor.colored("ESC or q: quit | ENTER: open paper | ↑: up | ↓: down | s: search | n: notes",
+            print(termcolor.colored(colwidth("ESC or q: quit | ENTER: open paper | ↑: up | ↓: down | s: search | n: notes"),
                                     "white", attrs=["bold"]))
         print_header()
 
