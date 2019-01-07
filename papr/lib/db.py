@@ -3,6 +3,7 @@ from lib.paper import Paper
 
 SQLITE_FILE = "paper.db"
 
+
 class Db:
     @staticmethod
     def create(path):
@@ -44,7 +45,7 @@ class Db:
         conn = sqlite3.connect(self.filename())
         # TODO: handle error if connect fails
         c = conn.cursor()
-        data = (p.idx, p.as_json())
+        data = (p.idx(), p.as_json())
         c.execute("INSERT INTO papers (idx, json) VALUES (?, ?)", data)
         conn.commit()
         conn.close()
@@ -61,3 +62,14 @@ class Db:
         if not r:
             return None
         return Paper.from_json(idx, r[0])
+
+    def update_paper(self, p: Paper):
+        conn = sqlite3.connect(self.filename())
+        # TODO: handle error if connect fails
+        c = conn.cursor()
+        data = (p.as_json(), p.idx())
+        c.execute("UPDATE papers SET json = ? WHERE idx = ?", data)
+        conn.commit()
+        conn.close()
+        # TODO: handle db errors
+

@@ -10,7 +10,7 @@ VIEWER = "/usr/bin/evince"
 def exists_in(p, q):
     try:
         r = re.compile(q.lower())
-        if r.search(p.title.lower()):
+        if r.search(p.title().lower()):
             return True
         return False
     except Exception:
@@ -22,6 +22,6 @@ def filter_list(l, query):
 
 
 def show_pdf(p: Paper, repo_path):
-    Popen([VIEWER, repo_path + "/" + p.filename], stderr=DEVNULL, stdout=DEVNULL)
+    Popen([VIEWER, repo_path + "/" + p.filename()], stderr=DEVNULL, stdout=DEVNULL)
 
 

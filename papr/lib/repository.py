@@ -71,3 +71,5 @@ class Repository:
     def get_paper(self, idx):
         return self.db.get(idx)
 
+    def update_paper(self, p):
+        self.db.update_paper(p)

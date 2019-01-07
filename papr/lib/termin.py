@@ -1,5 +1,7 @@
+import os
 import termios
 import sys
+from select import select
 
 
 def read_key():
@@ -8,12 +10,17 @@ def read_key():
     newattr = termios.tcgetattr(fd)
     newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
     termios.tcsetattr(fd, termios.TCSANOW, newattr)
-    c = None
+    c = []
     try:
-        c = sys.stdin.read(1)
+        select([fd], [], [])
+        c = [i for i in os.read(fd, 50)]
     except IOError:
         pass
     termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-    return c
-
-
+    if len(c) == 1:
+        return chr(c[0])
+    else:
+        if c == [27, 91, 65]:
+            return '#'
+        elif c == [27, 91, 66]:
+            return '+'

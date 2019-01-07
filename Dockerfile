@@ -5,6 +5,7 @@ RUN apt-get -y install apt-utils aptitude git curl net-tools iputils-ping tcpdum
 RUN apt-get -y install python3 python3-pip
 RUN apt-get -y install jq
 RUN apt-get -y install evince
+RUN apt-get -y install vim
 
 RUN pip3 install bs4 termcolor
 

@@ -1,8 +1,10 @@
 import sys
+import time
 
 import termcolor
 
 from lib.console import cursor_on, cursor_up, cursor_off
+from lib.edit import editor, notes_of_paper
 from lib.termin import read_key
 from lib.termout import rows, empty_line, print_paper, print_header
 from lib.tools import filter_list, show_pdf
@@ -17,7 +19,7 @@ def run_ui(args, repo):
     if len(args) > 0:
         r = filter_list(r, args[0])
 
-    print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search", "white", attrs=["bold"]))
+    print(termcolor.colored(" ", "white", attrs=["bold"]))
     print_header()
     m = rows() - 4 - 1             # have added -1 as otherwise the header flickers sometimes when scrolling
     n = len(r)
@@ -32,9 +34,10 @@ def run_ui(args, repo):
     while True:
         cursor_up(4)
         if in_search:
-            print(termcolor.colored("ESC: cancel + back to selection mode | ENTER: back to selection mode", "white", attrs=["bold"]))
+            print(termcolor.colored("ESC: cancel + back to selection mode | ENTER: back to selection mode", "white", "on_blue", attrs=["bold"]))
         else:
-            print(termcolor.colored("ESC or q: quit | ENTER: open paper | i: up | k: down | s: search    ", "white", attrs=["bold"]))
+            print(termcolor.colored("ESC or q: quit | ENTER: open paper | ↑: up | ↓: down | s: search | n: notes",
+                                    "white", attrs=["bold"]))
         print_header()
 
         cnt = 0
@@ -53,13 +56,13 @@ def run_ui(args, repo):
 
         k = read_key()
         if not in_search:
-            if k == 'i':
+            if k == 'i' or k == '#':
                 if selected == 0:
                     view = max(view - 1, 0)
                 else:
                     selected -= 1
                 cursor_up(initial_window_rows + 1)
-            elif k == 'k':
+            elif k == 'k' or k == '+':
                 if selected == window_rows - 1:
                     if selected + view + 1 < n:
                         view += 1
@@ -67,6 +70,8 @@ def run_ui(args, repo):
                 else:
                     selected += 1
                 cursor_up(initial_window_rows + 1)
+            elif k == 'n':
+                notes_of_paper(repo, papers[view + selected])
             elif ord(k) == 10:
                 show_pdf(papers[view + selected], repo.pdf_path())
                 cursor_up(initial_window_rows+ 1)
