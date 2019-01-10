@@ -1,0 +1,2 @@
+- when fetching the document is not downloaded to the pdf folder
+- notes: spaces are converted to newlines
