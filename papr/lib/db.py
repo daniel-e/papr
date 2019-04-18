@@ -33,9 +33,7 @@ class Db:
 
     @staticmethod
     def version_3_commands(conn, c):
-        c.execute("CREATE TABLE tags (idx integer key, tag text)")
-        c.execute("UPDATE config SET version = ?", (3, ))
-        conn.commit()
+        pass
 
     @staticmethod
     def upgrade_from_1(conn, c):
@@ -108,7 +106,6 @@ class Db:
         c = conn.cursor()
         data = (p.idx(), p.as_json())
         c.execute("INSERT INTO papers (idx, json) VALUES (?, ?)", data)
-        c.execute("INSERT INTO tags (idx, tag) VALUES (?,?)", (p.idx(), "unread"))
         conn.commit()
         conn.close()
         # TODO: handle db errors
