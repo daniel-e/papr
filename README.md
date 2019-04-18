@@ -1,12 +1,19 @@
 # Papr
 
-Papr is a command line tool to manage and quickyl access scientific papers.
+Papr is a command line tool to manage and quickyl access scientific papers from the command line.
+
+**Features**
+
+* **Fast search:** search in the title of papers via regular expressions.
+* **Notes:** create notes for each paper.
+* **Rating of papers:** rate your papers via five star rating system.
+* **Tags:** assign each paper different tags.
 
 ![papr](screenshot.png)
 
 ## Install
 
-You can install papr via pip as follows:
+You can install papr via pip:
 
     pip install papr
 
