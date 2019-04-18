@@ -1,6 +1,6 @@
 # Papr
 
-Papr is a command line tool to manage and quickyl access scientific papers from the command line.
+Papr is a tool to manage and quickyl access scientific papers from the command line.
 
 **Features**
 
@@ -9,7 +9,6 @@ Papr is a command line tool to manage and quickyl access scientific papers from 
 * **Rating of papers:** rate your papers via five star rating system.
 * **Tags:** assign each paper different tags.
 
-<img src="screenshot.png">
 ![papr](screenshot.png)
 
 ## Install
@@ -33,7 +32,8 @@ The last repository which you create with `papr init` is set as the default repo
 
 **Fetch a paper from arXiv.org or OpenReview.net**
 
-Fetch a document from arXiv is quite easy. You just have to provide the URL of the abstract and papr will download the PDF and will automatically extract the title. Example:
+Fetching a document from arXiv is quite easy. You just have to provide the URL of the abstract and papr will
+download the PDF and will automatically extract the title. Example:
 
     papr fetch https://arxiv.org/abs/1812.07561
 
@@ -48,3 +48,7 @@ When you have added papers to your repository you can run papr by simply executi
     papr
 
 You will see your list of papers through which you can navigate.
+
+**Further information**
+
+Run `papr --help` for further information.
