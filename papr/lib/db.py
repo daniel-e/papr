@@ -2,7 +2,7 @@ import sqlite3
 from lib.paper import Paper
 
 SQLITE_FILE = "paper.db"
-MAX_SUPPORT_DB_VERSION = 3
+MAX_SUPPORT_DB_VERSION = 2
 
 
 class Db:
@@ -15,8 +15,8 @@ class Db:
         c.execute("CREATE TABLE papers (idx integer primary key, json text)")
         # SQL queries for version 2.
         Db.version_2_commands()
-        # SQL queries for version 3.
-        Db.version_3_commands()
+#        # SQL queries for version 3.
+#        Db.version_3_commands()
         conn.commit()
         conn.close()
         # TODO: handle db errors
@@ -57,11 +57,11 @@ class Db:
             # Upgrade database to version 2.
             Db.upgrade_from_1(conn, c)
         # At this point we have at least version 2.
-        while True:
-            if Db.get_version(c) == 2:
-                Db.upgrade_from_2(conn, c)
-            else:
-                break
+#        while True:
+#            if Db.get_version(c) == 2:
+#                Db.upgrade_from_2(conn, c)
+#            else:
+#                break
         conn.close()
 
     def __init__(self, path):
