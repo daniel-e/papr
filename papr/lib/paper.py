@@ -56,6 +56,9 @@ class Paper:
     def tags(self):
         return sorted(self._tags)
 
+    def set_tags(self, tags):
+        self._tags = tags
+
     def stars(self):
         return self._stars
 

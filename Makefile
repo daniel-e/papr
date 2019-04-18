@@ -11,7 +11,7 @@ newrepo:
 	@./scripts/build_testrepo.sh
 
 preparedocker:
-	docker build -t papr/1 .
+	docker build --no-cache -t papr/1 .
 
 runtest:
 	docker run -t -i -e DISPLAY=${DISPLAY} -v ${PWD}:/host/ -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1

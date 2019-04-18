@@ -25,14 +25,18 @@ def editor(msg, n=None):
 
 def notes_of_paper(repo: Repository, p: Paper):
     msg = p.msg()
-#    if len(msg) == 0:
-#        msg = "Notes\n" + "============================================================\n"
     msg = editor(msg, 1).strip()
-#    lines = msg.split()
-#    if len(lines) > 1:
-#        if lines[0] == "Notes" and lines[1] == "============================================================":
-#            del lines[0]
-#            del lines[0]
-#    msg = "\n".join(lines)
     p.update_msg(msg)
+    repo.update_paper(p)
+
+
+def tags_of_paper(repo: Repository, p: Paper):
+    msg = "COMMA SEPARATED LIST OF WORDS\n" + ",".join(p.tags())
+    msg = editor(msg, 2)
+    pos = msg.find("\n")
+    if pos >= 0:
+        msg = msg[pos+1:]
+    msg = msg.replace("\n", ",")
+    tags = [j for j in [i.strip().lower() for i in msg.split(",")] if len(j) > 0]
+    p.set_tags(tags)
     repo.update_paper(p)

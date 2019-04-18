@@ -1,3 +1,4 @@
 - bugfix : fetch didn't download a PDF into the default repository
 - intern : old database is automatically upgraded
 - feature: set "unread" tag when fetching a paper
+- feature: set stars

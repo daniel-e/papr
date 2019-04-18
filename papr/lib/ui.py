@@ -2,7 +2,7 @@ import sys
 import termcolor
 
 from lib.console import cursor_on, cursor_up, cursor_off
-from lib.edit import notes_of_paper
+from lib.edit import notes_of_paper, tags_of_paper
 from lib.termin import read_key
 from lib.termout import rows, empty_line, print_paper, print_header, cols
 from lib.tools import filter_list, show_pdf
@@ -40,7 +40,7 @@ def run_ui(args, repo):
         if in_search:
             print(termcolor.colored(colwidth("ESC: cancel + back to selection mode | ENTER: back to selection mode"), "white", "on_blue", attrs=["bold"]))
         else:
-            print(termcolor.colored(colwidth("ESC or q: quit | ENTER: open paper | ↑: up | ↓: down | s: search | n: notes"),
+            print(termcolor.colored(colwidth("ESC/q: quit | ENTER: open | ↑: up | ↓: down | s: search | n: notes | t: tags"),
                                     "white", attrs=["bold"]))
         print_header()
 
@@ -76,6 +76,8 @@ def run_ui(args, repo):
                 cursor_up(initial_window_rows + 1)
             elif k == 'n':
                 notes_of_paper(repo, papers[view + selected])
+            elif k == 't':
+                tags_of_paper(repo, papers[view + selected])
             elif ord(k) == 10:
                 papers[view + selected].remove_tag(NEWTAG)
                 repo.update_paper(papers[view + selected])
