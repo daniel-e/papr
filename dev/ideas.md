@@ -1,5 +1,7 @@
+* filter by tags
+* filter by stars
+
 * Title
 * Authors
 * Year
-* Tags
 * time PDF added to the repository

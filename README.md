@@ -9,6 +9,7 @@ Papr is a command line tool to manage and quickyl access scientific papers from 
 * **Rating of papers:** rate your papers via five star rating system.
 * **Tags:** assign each paper different tags.
 
+<img src="screenshot.png">
 ![papr](screenshot.png)
 
 ## Install
