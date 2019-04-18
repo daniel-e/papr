@@ -14,9 +14,9 @@ class Db:
         # SQL queries for version 1.
         c.execute("CREATE TABLE papers (idx integer primary key, json text)")
         # SQL queries for version 2.
-        Db.version_2_commands()
+        Db.version_2_commands(conn, c)
 #        # SQL queries for version 3.
-#        Db.version_3_commands()
+#        Db.version_3_commands(conn, c)
         conn.commit()
         conn.close()
         # TODO: handle db errors
