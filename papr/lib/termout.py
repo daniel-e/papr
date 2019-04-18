@@ -36,22 +36,29 @@ def print_paper(paper, selected = False):
     # 2 columns at the end of the line for notes
     # n columns for filename
     # k columns for tags
+    # t columns for stars
+
+    stars = ""
+    if paper.stars() >= 0:
+        stars = " [" + " "*(5-paper.stars()) + "*"*paper.stars() + "]"
+    t = len(stars)
 
     tags = ""
     if len(paper.tags()) > 0:
         tags = " [" + ",".join(paper.tags()) + "]"
     k = len(tags)
 
-    n = cols - (5 + 1 + 2) - k
+    n = cols - (5 + 1 + 2) - k - t
     f = paper.title()
     if len(f) > n:
         f = f[:n - 3] + "..."
 
     s = "{:5d} {}".format(paper.idx(), f)
     if len(s) < cols:
-        s = s + (" " * (cols - len(s) - 2 - k))
+        s = s + (" " * (cols - len(s) - 2 - k - t))
 
     s = s + tags
+    s = s + stars
 
     if paper.has_notes():
         s += " ✺"

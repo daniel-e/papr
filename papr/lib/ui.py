@@ -80,12 +80,17 @@ def run_ui(args, repo):
                 papers[view + selected].remove_tag(NEWTAG)
                 repo.update_paper(papers[view + selected])
                 show_pdf(papers[view + selected], repo.pdf_path())
-                cursor_up(initial_window_rows+ 1)
+                cursor_up(initial_window_rows + 1)
             elif ord(k) == 27 or k == 'q':
                 break
             elif k == 's':
                 cursor_up(initial_window_rows + 1)
                 in_search = True
+            elif k >= '0' and k <= '5':
+                stars = int(k)
+                papers[view + selected].set_stars(stars)
+                repo.update_paper(papers[view + selected])
+                cursor_up(initial_window_rows + 1)
             else:
                 cursor_up(initial_window_rows + 1)
         else:

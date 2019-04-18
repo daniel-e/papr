@@ -8,6 +8,7 @@ class Paper:
         self._title = title
         self._msg = ""
         self._tags = tags
+        self._stars = 0
 
     @staticmethod
     def from_json(idx, jsonstr):
@@ -18,6 +19,7 @@ class Paper:
         p._title = data["title"]
         p._msg = data.get("msg", "")
         p._tags = [i for i in data.get("tags", "").split(",") if len(i) > 0]
+        p._stars = int(data.get("stars", "0"))
         return p
 
     def as_json(self):
@@ -25,7 +27,8 @@ class Paper:
             "filename": self._filename,
             "title": self._title,
             "msg": self._msg,
-            "tags": ",".join(self._tags)
+            "tags": ",".join(self._tags),
+            "stars": self._stars
         }
         return json.dumps(d)
 
@@ -51,4 +54,10 @@ class Paper:
         return len(self._msg) > 0
 
     def tags(self):
-        return self._tags
+        return sorted(self._tags)
+
+    def stars(self):
+        return self._stars
+
+    def set_stars(self, n):
+        self._stars = max(0, min(5, n))
