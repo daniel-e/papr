@@ -27,7 +27,7 @@ def notes_of_paper(repo: Repository, p: Paper):
     msg = p.msg()
 #    if len(msg) == 0:
 #        msg = "Notes\n" + "============================================================\n"
-    msg = editor(msg, 2).strip()
+    msg = editor(msg, 1).strip()
 #    lines = msg.split()
 #    if len(lines) > 1:
 #        if lines[0] == "Notes" and lines[1] == "============================================================":
