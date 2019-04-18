@@ -15,3 +15,6 @@ preparedocker:
 
 runtest:
 	docker run -t -i -e DISPLAY=${DISPLAY} -v ${PWD}:/host/ -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1
+
+indocker:
+	docker run -t -i -e DISPLAY=${DISPLAY} -v ${PWD}/papr:/root/papr/papr -v ${PWD}/scripts:/root/papr/scripts -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1

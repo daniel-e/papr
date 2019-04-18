@@ -6,6 +6,7 @@ from lib.edit import notes_of_paper
 from lib.termin import read_key
 from lib.termout import rows, empty_line, print_paper, print_header, cols
 from lib.tools import filter_list, show_pdf
+from lib.cmd_fetch import NEWTAG
 
 
 def colwidth(s: str):
@@ -76,6 +77,8 @@ def run_ui(args, repo):
             elif k == 'n':
                 notes_of_paper(repo, papers[view + selected])
             elif ord(k) == 10:
+                papers[view + selected].remove_tag(NEWTAG)
+                repo.update_paper(papers[view + selected])
                 show_pdf(papers[view + selected], repo.pdf_path())
                 cursor_up(initial_window_rows+ 1)
             elif ord(k) == 27 or k == 'q':

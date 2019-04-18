@@ -1,4 +1,6 @@
 import os
+import sys
+
 from lib.db import Db
 from lib.config import Config
 from lib.paper import Paper
@@ -16,6 +18,9 @@ class Repository:
         self._init_paths()
         if self.is_valid():
             self.db = Db(self.repo_meta_path)
+            if not self.db.check_version():
+                print("Found incompatible version.")
+                sys.exit(1)
 
     def init(self):
         """

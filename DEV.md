@@ -1,3 +1,41 @@
+# Use Case: As a user I want to play around with papr.
+
+You should use the docker environment for those things as you can create
+repositories and delete repositories without the risk that you play with your
+real repositories on your machine:
+
+    xhost +
+    make preparedocker
+    make runtest
+
+In the docker container there is a link from `/usr/bin/papr` which
+points to the script in `/root/papr/papr/cli.py`.
+
+Create a test repository:
+
+    mkdir repo
+    cd repo
+    ../scripts/build_testrepo.sh
+
+Now, you can just execute `papr`.
+
+Note: if you modify the papr scripts on the host it has no effect on the
+docker image.
+
+
+# Use Case: As a developer I want to use the latest scripts from the host.
+
+Instead of running
+
+    make runtest
+    
+execute
+
+    make indocker 
+
+
+
+
 # Install from local
 
     pip3 uninstall -y papr

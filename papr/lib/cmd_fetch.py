@@ -11,6 +11,9 @@ from lib.paper import Paper
 from lib.repository import Repository
 
 
+NEWTAG="unread"
+
+
 def title_as_filename(s):
     return re.sub(r'[^a-z0-9]', "_", re.sub(r'\s+', "_", s.lower()))
 
@@ -23,7 +26,8 @@ def prepare_data(title: str, repo: Repository):
     title = normalize_title(title)
     idx = repo.next_id()
     filename = "{:05d}_{}.pdf".format(idx, title_as_filename(title))
-    return title, idx, filename
+    abspath = repo.pdf_path() + "/" + filename
+    return title, idx, filename, abspath
 
 
 def add_local_file(f: str, args, repo: Repository):
@@ -31,10 +35,10 @@ def add_local_file(f: str, args, repo: Repository):
         print("For local files you need to specify the title of the paper.")
         sys.exit(1)
 
-    title, idx, filename = prepare_data(args[0], repo)
-    if not os.path.exists(filename):
-        shutil.copy(f, filename)
-    p = Paper(idx=idx, filename=filename, title=title)
+    title, idx, filename, abspath = prepare_data(args[0], repo)
+    if not os.path.exists(abspath):
+        shutil.copy(f, abspath)
+    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
     repo.add_paper(p)
     print("Added paper.")
     print("Title:", title)
@@ -64,7 +68,7 @@ def bar(p):
     sys.stdout.flush()
 
 
-def download(rsp):
+def download(rsp, no_progress_bar=False):
     n = rsp.getheader("content-length")
     data = bytes()
     if n is not None:
@@ -74,8 +78,10 @@ def download(rsp):
             t = rsp.read(min(1024, n))
             data += t
             n -= min(1024, n)
-            bar(100.0 * (s - n) / s)
-        print()
+            if not no_progress_bar:
+                bar(100.0 * (s - n) / s)
+        if not no_progress_bar:
+            print()
     else:
         chars = "|/-|\\"
         n = 0
@@ -84,10 +90,12 @@ def download(rsp):
             if len(t) == 0:
                 break
             data += t
-            sys.stdout.write("\rloading " + chars[n % len(chars)])
-            sys.stdout.flush()
+            if not no_progress_bar:
+                sys.stdout.write("\rloading " + chars[n % len(chars)])
+                sys.stdout.flush()
             n += 1
-        print("\r          ")
+        if not no_progress_bar:
+            print("\r          ")
     return data
 
 
@@ -116,7 +124,7 @@ def cmd_fetch(args, repo: Repository):
         if not is_text_or_html(typ) and len(args) < 2:  # for PDF files we need a title
             print("The response is not html. You need to specify a title.")
             sys.exit(1)
-        data = download(rsp)
+        data = download(rsp, is_text_or_html(typ))
         title = ""
         if is_text_or_html(typ):
             t, pdfurl = parse_page(data)
@@ -130,16 +138,17 @@ def cmd_fetch(args, repo: Repository):
         else:
             title = args[1]
 
-        title, idx, filename = prepare_data(title, repo)
+        title, idx, filename, abspath = prepare_data(title, repo)
 
-        k = open(filename, "w")
+        k = open(abspath, "w")
         k.buffer.write(data)
         k.close()
 
-        p = Paper(idx=idx, filename=filename, title=title)
+        p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
         repo.add_paper(p)
-        print("Added paper.")
-        print("Title:", title)
+        print("   Title:", title)
         print("Filename:", filename)
+        print("Added paper.")
+        print()
 
 
