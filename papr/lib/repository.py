@@ -1,9 +1,9 @@
 import os
 import sys
 
-from lib.db import Db
-from lib.config import Config
-from lib.paper import Paper
+from .db import Db
+from .config import Config
+from .paper import Paper
 
 REPO_META = ".paper"
 

@@ -1,9 +1,7 @@
 import sys
 
-from lib.repository import Repository
 
-
-def cmd_init(repo: Repository) -> None:
+def cmd_init(repo) -> None:
     # Check that the current directory isn't already a repository.
     if repo.is_local_repository():
         print("You are already in a repository.", file=sys.stderr)

@@ -1,7 +1,7 @@
 import re
 from subprocess import Popen, DEVNULL
 
-from lib.paper import Paper
+from .paper import Paper
 
 
 VIEWER = "/usr/bin/evince"

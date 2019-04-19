@@ -1,6 +1,6 @@
 import sys
-from lib.repository import Repository
-from lib.paper import Paper
+from .repository import Repository
+from .paper import Paper
 
 
 def cmd_add(args, repo: Repository):

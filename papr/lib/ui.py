@@ -1,12 +1,12 @@
 import sys
 import termcolor
 
-from lib.console import cursor_on, cursor_up, cursor_off
-from lib.edit import notes_of_paper, tags_of_paper
-from lib.termin import read_key
-from lib.termout import rows, empty_line, print_paper, print_header, cols
-from lib.tools import filter_list, show_pdf
-from lib.cmd_fetch import NEWTAG
+from .console import cursor_on, cursor_up, cursor_off
+from .edit import notes_of_paper, tags_of_paper
+from .termin import read_key
+from .termout import rows, empty_line, print_paper, print_header, cols
+from .tools import filter_list, show_pdf
+from .cmd_fetch import NEWTAG
 
 
 def colwidth(s: str):

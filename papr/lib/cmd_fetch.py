@@ -7,8 +7,8 @@ import shutil
 import re
 from bs4 import BeautifulSoup
 
-from lib.paper import Paper
-from lib.repository import Repository
+from .paper import Paper
+from .repository import Repository
 
 
 NEWTAG="unread"

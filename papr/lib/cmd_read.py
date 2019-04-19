@@ -1,6 +1,6 @@
 import sys
 
-from lib.tools import show_pdf
+from .tools import show_pdf
 
 
 def cmd_read(args, repo):

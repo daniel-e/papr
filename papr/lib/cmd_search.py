@@ -1,8 +1,8 @@
 import sys
 
-from lib.repository import Repository
-from lib.termout import print_papers
-from lib.tools import filter_list
+from .repository import Repository
+from .termout import print_papers
+from .tools import filter_list
 
 
 def cmd_search(args, repo: Repository):

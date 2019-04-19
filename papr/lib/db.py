@@ -1,5 +1,5 @@
 import sqlite3
-from lib.paper import Paper
+from .paper import Paper
 
 SQLITE_FILE = "paper.db"
 MAX_SUPPORT_DB_VERSION = 2

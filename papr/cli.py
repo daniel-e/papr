@@ -5,18 +5,18 @@
 
 import sys
 
-from lib.cmd_default import cmd_default
-from lib.cmd_init import cmd_init
-from lib.cmd_last import cmd_last
-from lib.cmd_list import cmd_list
-from lib.cmd_read import cmd_read
-from lib.cmd_search import cmd_search
-from lib.ui import run_ui
-from lib.config import Config
-from lib.repository import Repository
-from lib.help import help
-from lib.cmd_add import cmd_add
-from lib.cmd_fetch import cmd_fetch
+from .lib.cmd_default import cmd_default
+from .lib.cmd_init import cmd_init
+from .lib.cmd_last import cmd_last
+from .lib.cmd_list import cmd_list
+from .lib.cmd_read import cmd_read
+from .lib.cmd_search import cmd_search
+from .lib.ui import run_ui
+from .lib.config import Config
+from .lib.repository import Repository
+from .lib.help import help
+from .lib.cmd_add import cmd_add
+from .lib.cmd_fetch import cmd_fetch
 
 
 def parse_command(conf: Config, repo: Repository) -> None:

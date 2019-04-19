@@ -1,4 +1,4 @@
-from lib.termout import print_header, print_papers
+from .termout import print_header, print_papers
 
 
 def cmd_list(repo):

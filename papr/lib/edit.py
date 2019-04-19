@@ -2,8 +2,8 @@ import tempfile
 import os
 from subprocess import call
 
-from lib.paper import Paper
-from lib.repository import Repository
+from .paper import Paper
+from .repository import Repository
 
 
 def editor(msg, n=None):
