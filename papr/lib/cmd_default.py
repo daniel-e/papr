@@ -1,6 +1,6 @@
 import sys
 
-from lib.config import Config
+from .config import Config
 
 
 def cmd_default(conf: Config, repo) -> None:
