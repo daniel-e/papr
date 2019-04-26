@@ -109,46 +109,67 @@ def parse_page(data):
     return None, None
 
 
-def cmd_fetch(args, repo: Repository):
-    if len(args) == 0:
-        print("You need to specify a filename or URL.")
+def do_fetch_download(repo: Repository, url, title):
+    req = urllib.request.Request(url)
+    rsp = urllib.request.urlopen(req)
+    typ = rsp.getheader("content-type")
+    if not is_text_or_html(typ) and title == "":  # for PDF files we need a title
+        print("The response is not html. You need to specify a title.", file=sys.stderr)
         sys.exit(1)
+    data = download(rsp, is_text_or_html(typ))
+    if is_text_or_html(typ):
+        t, pdfurl = parse_page(data)
+        if t is None:
+            print("Error")
+            sys.exit(1)
+        title = t
+        req = urllib.request.Request(pdfurl)
+        rsp = urllib.request.urlopen(req)
+        data = download(rsp)
 
-    fname = args[0]
+    title, idx, filename, abspath = prepare_data(title, repo)
+
+    k = open(abspath, "w")
+    k.buffer.write(data)
+    k.close()
+
+    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
+    repo.add_paper(p)
+    print("   Title:", title)
+    print("Filename:", filename)
+    print("Added paper.")
+    print()
+
+
+def do_fetch(args, repo: Repository):
+    title = ""
+    if len(args) >= 2:
+        title = args[1]
+    fname = None
+    if len(args) >= 1:
+        fname = args[0]
     if os.path.exists(fname):
         add_local_file(fname, args[1:], repo)
     else:
-        req = urllib.request.Request(fname)
-        rsp = urllib.request.urlopen(req)
-        typ = rsp.getheader("content-type")
-        if not is_text_or_html(typ) and len(args) < 2:  # for PDF files we need a title
-            print("The response is not html. You need to specify a title.")
+        do_fetch_download(repo, url=fname, title=title)
+
+
+def cmd_fetch(args, repo: Repository):
+    if len(args) == 0:
+        print("You need to specify an option, filename or URL.")
+        sys.exit(1)
+
+    if args[0] == "--urls":
+        if len(args) < 2:
+            print("You need to specify a file.", file=sys.stderr)
             sys.exit(1)
-        data = download(rsp, is_text_or_html(typ))
-        title = ""
-        if is_text_or_html(typ):
-            t, pdfurl = parse_page(data)
-            if t is None:
-                print("Error")
-                sys.exit(1)
-            title = t
-            req = urllib.request.Request(pdfurl)
-            rsp = urllib.request.urlopen(req)
-            data = download(rsp)
-        else:
-            title = args[1]
-
-        title, idx, filename, abspath = prepare_data(title, repo)
-
-        k = open(abspath, "w")
-        k.buffer.write(data)
-        k.close()
-
-        p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
-        repo.add_paper(p)
-        print("   Title:", title)
-        print("Filename:", filename)
-        print("Added paper.")
-        print()
+        with open(args[1], "r") as f:
+            for line in f:
+                s = line.strip()
+                if len(s) > 0:
+                    print("fetching", s, "...", file=sys.stderr)
+                    do_fetch([s], repo)
+    else:
+        do_fetch(args, repo)
 
 

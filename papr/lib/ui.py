@@ -59,6 +59,9 @@ def run_ui(args, repo):
             sys.stdout.flush()
 
         k = read_key()
+        if k is None:
+            cursor_up(initial_window_rows + 1)
+            continue
         if not in_search:
             if k == 'i' or k == '#':
                 if selected == 0:
@@ -76,8 +79,10 @@ def run_ui(args, repo):
                 cursor_up(initial_window_rows + 1)
             elif k == 'n':
                 notes_of_paper(repo, papers[view + selected])
+                cursor_up(initial_window_rows + 1)
             elif k == 't':
                 tags_of_paper(repo, papers[view + selected])
+                cursor_up(initial_window_rows + 1)
             elif ord(k) == 10:
                 papers[view + selected].remove_tag(NEWTAG)
                 repo.update_paper(papers[view + selected])

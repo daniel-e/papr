@@ -1,0 +1,6 @@
+./get_urls.sh
+head -n 10 urls.txt > urls10.txt
+mkdir small_repo
+cd small_repo
+papr init
+papr fetch --urls ../urls10.txt

@@ -1,3 +1,9 @@
+0.0.13
+- feature: import list of URLs via "fetch --urls <filename>"
+- bugfix : fixed a stacktrace when invalid key was pressed
+- bugfix : fixed layout issues after editing tags and notes
+
+0.0.12
 - bugfix : fetch didn't download a PDF into the default repository
 - intern : old database is automatically upgraded
 - feature: set "unread" tag when fetching a paper

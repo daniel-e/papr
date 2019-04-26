@@ -25,6 +25,8 @@ def parse_command(conf: Config, repo: Repository) -> None:
         if c == "init":
             cmd_init(repo)
             return
+        elif c == "help" or c == "--help" or c == "-h":
+            help(0)
         elif c == "default":
             cmd_default(conf, repo)
             return
@@ -52,8 +54,6 @@ def parse_command(conf: Config, repo: Repository) -> None:
         cmd_last(sys.argv[2:], repo)
     elif c == "add":
         cmd_add(sys.argv[2:], repo)
-    elif c == "help" or c == "--help" or c == "-h":
-        help(0)
     else:
         help(1)
 

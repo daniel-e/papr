@@ -3,6 +3,5 @@ dist/
 papr.egg-info/
 .idea
 venv
-repo
-repo.1
 papr/lib/__pycache__/
+*.swp
