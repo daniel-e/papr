@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 
 from .paper import Paper
 from .repository import Repository
+from .edit import editor
 
 
 NEWTAG="unread"
@@ -109,13 +110,26 @@ def parse_page(data):
     return None, None
 
 
+def determine_title_via_vim():
+    msg = "# Please enter the title of the paper.\n\n"
+    msg = editor(msg, 2)
+    s = ""
+    for line in msg.split("\n"):
+        c = re.compile(r"\s*#.*")
+        m = c.match(line)
+        if m is None:
+            s = (s + " " + line.strip()).strip()
+    if len(s) == 0:
+        s = "(emtpy)"
+    return s
+
+
 def do_fetch_download(repo: Repository, url, title):
     req = urllib.request.Request(url)
     rsp = urllib.request.urlopen(req)
     typ = rsp.getheader("content-type")
     if not is_text_or_html(typ) and title == "":  # for PDF files we need a title
-        print("The response is not html. You need to specify a title.", file=sys.stderr)
-        sys.exit(1)
+        title = determine_title_via_vim()
     data = download(rsp, is_text_or_html(typ))
     if is_text_or_html(typ):
         t, pdfurl = parse_page(data)

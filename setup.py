@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="papr",
-    version="0.0.13",
+    version="0.0.14",
     entry_points = {
         "console_scripts": ['papr = papr.cli:main']
         },

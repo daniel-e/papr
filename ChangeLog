@@ -1,3 +1,6 @@
+0.0.14
+- ask for the title when directly downloading a PDF and title is not given
+
 0.0.13
 - feature: import list of URLs via "fetch --urls <filename>"
 - bugfix : fixed a stacktrace when invalid key was pressed
