@@ -9,6 +9,8 @@ class Paper:
         self._msg = ""
         self._tags = tags
         self._stars = 0
+        self._url = ""
+        self._abstract = ""
 
     @staticmethod
     def from_json(idx, jsonstr):
@@ -20,17 +22,37 @@ class Paper:
         p._msg = data.get("msg", "")
         p._tags = [i for i in data.get("tags", "").split(",") if len(i) > 0]
         p._stars = int(data.get("stars", "0"))
+        p._abstract = data.get("abstract", "")
+        p._url = data.get("url", "")
         return p
 
-    def as_json(self):
+    def as_nice_dict(self):
+        mapping = {
+            "filename": "Filename",
+            "title": "Title",
+            "msg": "Notes",
+            "tags": "Tags",
+            "stars": "Voting",
+            "abstract": "Abstract",
+            "url": "URL"
+        }
+        r = {mapping.get(i, "<unknown>"): j for i, j in self.as_dict().items()}
+        return r
+
+    def as_dict(self):
         d = {
             "filename": self._filename,
             "title": self._title,
             "msg": self._msg,
             "tags": ",".join(self._tags),
-            "stars": self._stars
+            "stars": self._stars,
+            "abstract": self._abstract,
+            "url": self._url
         }
-        return json.dumps(d)
+        return d
+
+    def as_json(self):
+        return json.dumps(self.as_dict())
 
     def remove_tag(self, tag):
         self._tags = [i for i in self._tags if i != tag]
@@ -64,3 +86,17 @@ class Paper:
 
     def set_stars(self, n):
         self._stars = max(0, min(5, n))
+
+    def set_abstract(self, abstract):
+        self._abstract = ""
+        if abstract is not None:
+            self._abstract = abstract
+
+    def set_url(self, url):
+        self._url = url
+
+    def abstract(self):
+        return self._abstract
+
+    def url(self):
+        return self._url

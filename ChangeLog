@@ -1,3 +1,9 @@
+0.0.15
+- feature: when downloading a paper also extract the abstract (only for arxiv and openreview)
+- feature: shortcut 'y' to show all information about a paper
+- feature: shortcut 'a' to show the abstract of a paper (only when abstract was extracted during download)
+- intern: store URL to paper in repository
+
 0.0.14
 - ask for the title when directly downloading a PDF and title is not given
 

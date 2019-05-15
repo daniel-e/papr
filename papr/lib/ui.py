@@ -2,7 +2,7 @@ import sys
 import termcolor
 
 from .console import cursor_on, cursor_up, cursor_off
-from .edit import notes_of_paper, tags_of_paper
+from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, print_header, cols
 from .tools import filter_list, show_pdf
@@ -63,7 +63,13 @@ def run_ui(args, repo):
             cursor_up(initial_window_rows + 1)
             continue
         if not in_search:
-            if k == 'i' or k == '#':
+            if k == 'a':
+                abstract_of_paper(papers[view + selected])
+                cursor_up(initial_window_rows + 1)
+            elif k == 'y':
+                details_of_paper(papers[view + selected])
+                cursor_up(initial_window_rows + 1)
+            elif k == 'i' or k == '#':
                 if selected == 0:
                     view = max(view - 1, 0)
                 else:

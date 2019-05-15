@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from .paper import Paper
 from .repository import Repository
 from .edit import editor
+from .abstract import parse_abstract
 
 
 NEWTAG="unread"
@@ -48,6 +49,14 @@ def add_local_file(f: str, args, repo: Repository):
 
 def is_text_or_html(s):
     return s is not None and (s.lower().find("text") >= 0 or s.lower().find("html") >= 0)
+
+
+def white():
+    return "\x1b[97;1m"
+
+
+def reset():
+    return "\x1b[0m"
 
 
 def bar(p):
@@ -105,9 +114,10 @@ def parse_page(data):
     r = h.find_all("meta")
     title = [i.get("content") for i in r if i.get("name") == "citation_title"]
     pdfurl = [i.get("content") for i in r if i.get("name") == "citation_pdf_url"]
+    abstract = parse_abstract(data)
     if len(title) > 0 and len(pdfurl) > 0:
-        return title[0], pdfurl[0]
-    return None, None
+        return title[0], pdfurl[0], abstract
+    return None, None, None
 
 
 def determine_title_via_vim():
@@ -125,14 +135,18 @@ def determine_title_via_vim():
 
 
 def do_fetch_download(repo: Repository, url, title):
-    req = urllib.request.Request(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
+    }
+    req = urllib.request.Request(url, headers=headers)
     rsp = urllib.request.urlopen(req)
     typ = rsp.getheader("content-type")
     if not is_text_or_html(typ) and title == "":  # for PDF files we need a title
         title = determine_title_via_vim()
     data = download(rsp, is_text_or_html(typ))
+    abstract = ""
     if is_text_or_html(typ):
-        t, pdfurl = parse_page(data)
+        t, pdfurl, abstract = parse_page(data)
         if t is None:
             print("Error")
             sys.exit(1)
@@ -148,10 +162,13 @@ def do_fetch_download(repo: Repository, url, title):
     k.close()
 
     p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
+    p.set_url(url)
+    p.set_abstract(abstract)
     repo.add_paper(p)
-    print("   Title:", title)
-    print("Filename:", filename)
-    print("Added paper.")
+    print("{}{}{} {}".format(white(), "   Title:", reset(), title))
+    print("{}{}{} {}".format(white(), "Filename:", reset(), filename))
+    print("{}{}{} {}".format(white(), "Abstract:", reset(), abstract))
+    print("{}{}{}".format(white(), "Added paper.", reset()))
     print()
 
 
