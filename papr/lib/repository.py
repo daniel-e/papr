@@ -65,6 +65,10 @@ class Repository:
             self.local = None
 
     def list(self):
+        """
+        Returns a list of all papers.
+        :return:
+        """
         return self.db.list()
 
     def next_id(self):

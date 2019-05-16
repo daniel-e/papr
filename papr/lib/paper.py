@@ -76,6 +76,10 @@ class Paper:
         return len(self._msg) > 0
 
     def tags(self):
+        """
+        Returns a list of tags.
+        :return:
+        """
         return sorted(self._tags)
 
     def set_tags(self, tags):

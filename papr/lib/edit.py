@@ -1,5 +1,6 @@
 import tempfile
 import os
+from collections import Counter
 from subprocess import call
 
 from .paper import Paper
@@ -30,7 +31,7 @@ def editor(msg, n=None):
 
 def less(msg):
     pth = create_tmp_file(msg)
-    cmd = ["less", pth]
+    cmd = ["less", "-c", pth]
     call(cmd)
 
 
@@ -71,3 +72,20 @@ def details_of_paper(p: Paper):
         t += details_str(key, val)
     t += details_str("Notes", d.get("Notes", ""))
     less(t)
+
+
+def bar(n, maxn, maxlen=30):
+    return "█" * (maxlen * n // maxn)
+
+
+def list_of_tags(repo: Repository):
+    # Get a list of list of tags.
+    l = [paper.tags() for paper in repo.list()]
+    # Flatten the list and count the occurrences of each tag.
+    c = Counter([j for i in l for j in i])
+    maxtaglen = max([len(tag) for tag, _ in c.most_common()])
+    maxn = max([n for _, n in c.most_common()])
+    msg = ""
+    for tag, n in c.most_common():
+        msg += tag + (" " * (maxtaglen - len(tag))) + " | " + "{:4}".format(n) + " " + bar(n, maxn) + "\n"
+    less(msg)

@@ -65,4 +65,5 @@ Run `papr --help` for further information.
 * t: Edit tags.
 * 0..5: Set voting.
 * y: Show all stored information about a paper.
+* l: Show statistics about tags.
 
