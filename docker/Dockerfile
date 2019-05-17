@@ -17,7 +17,11 @@ ADD papr /tmp/papr/papr
 ADD scripts /tmp/papr/scripts
 ADD setup.py /tmp/papr/
 ADD README.md /tmp/papr/
+
+# Initialize demo repository.
 ADD docker/example /root/example
+RUN mkdir -p /root/.papr
+RUN echo '{"cfg_version": "0.0.1", "default_repo": "/root/example/small_repo"}' > /root/.papr/papr.cfg
 
 ENV PATH=/root/.local/bin/:${PATH}
 ENV LANG=C.UTF-8

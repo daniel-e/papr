@@ -4,14 +4,34 @@ import termcolor
 from .console import cursor_on, cursor_up, cursor_off
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
 from .termin import read_key
-from .termout import rows, empty_line, print_paper, print_header, cols
+from .termout import rows, empty_line, print_paper, cols
 from .tools import filter_list, show_pdf
 from .cmd_fetch import NEWTAG
 
 
-def colwidth(s: str):
+def expand_to_colwidth(s: str):
     c = cols()
     return s + (" " * (c - len(s)))
+
+
+def hr():
+    return "─" * cols()
+
+
+def build_header():
+    return "Id    Title " + " " * (cols() - 12 - 8) + "Stars" + "  " + "\n" + hr()
+
+
+def build_default_header():
+    return termcolor.colored(
+        expand_to_colwidth("ESC/q: quit | ENTER: open | ↑: up | ↓: down | s: search | n: notes | t: tags"),
+        "white", attrs=["bold"])
+
+
+def build_search_header():
+    return termcolor.colored(
+        expand_to_colwidth("ESC: cancel + back to selection mode | ENTER: back to selection mode"),
+        "white", "on_blue", attrs=["bold"])
 
 
 def run_ui(args, repo):
@@ -23,8 +43,7 @@ def run_ui(args, repo):
     if len(args) > 0:
         r = filter_list(r, args[0])
 
-    print(termcolor.colored(" ", "white", attrs=["bold"]))
-    print_header()
+    print(build_header())
     m = rows() - 4 - 1             # have added -1 as otherwise the header flickers sometimes when scrolling
     n = len(r)
     window_rows = min(m, n)        # number of rows of the view
@@ -38,11 +57,10 @@ def run_ui(args, repo):
     while True:
         cursor_up(4)
         if in_search:
-            print(termcolor.colored(colwidth("ESC: cancel + back to selection mode | ENTER: back to selection mode"), "white", "on_blue", attrs=["bold"]))
+            print(build_search_header())
         else:
-            print(termcolor.colored(colwidth("ESC/q: quit | ENTER: open | ↑: up | ↓: down | s: search | n: notes | t: tags"),
-                                    "white", attrs=["bold"]))
-        print_header()
+            print(build_default_header())
+        print(build_header())
 
         cnt = 0
         for idx, p in enumerate(papers[view:view + m]):

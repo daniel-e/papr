@@ -22,6 +22,7 @@ def empty_line():
     return " " * cols
 
 
+# TODO duplicate
 def print_header():
     cols, _ = os.get_terminal_size(0)
     print("Id    Title " + " " * (cols - 12 - 8) + "Stars" + "  ")

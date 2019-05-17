@@ -17,6 +17,15 @@ use for testing:
     papr
 
 
+Testing
+=======
+
+    make dockerimage
+    make runimage
+    cd /host
+    make reinstall
+
+
 Use Case: As a developer I want to publish a new version to PyPI
 ================================================================
 
