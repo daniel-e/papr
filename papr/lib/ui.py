@@ -5,7 +5,7 @@ from .console import cursor_on, cursor_off, cursor_top_left
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
-from .tools import filter_list, show_pdf
+from .tools import filter_list, show_pdf, filter_list_re
 from .cmd_fetch import NEWTAG
 from .ui_scrollview import ScrollView
 
@@ -41,11 +41,11 @@ def build_title():
         "white", "on_blue", attrs=["bold"])
 
 
-def redraw(in_search, papers, v, search):
+def redraw(in_search, in_re_search, papers, v, search):
     cursor_top_left()
     write(build_title())
 
-    if in_search:
+    if in_search or in_re_search:
         write(build_search_header())
     else:
         write(build_default_header())
@@ -64,7 +64,7 @@ def redraw(in_search, papers, v, search):
 
     # search line
     sys.stdout.write(empty_line() + "\r")
-    if in_search:
+    if in_search or in_re_search:
         write("search: " + search + "▃")
     elif len(search) > 0:
         write("search: " + search)
@@ -80,16 +80,42 @@ def ui_main_or_search_loop(r, repo):
 
     search = ""
     in_search = False
+    in_re_search = False
     papers = r[:]
 
     while True:
-        redraw(in_search, papers, v, search)
+        redraw(in_search, in_re_search, papers, v, search)
 
         k = read_key()
         if k is None or k == '~':
             continue
 
-        if not in_search:
+        if in_search or in_re_search:
+            update_search = False
+            if ord(k) == 27:
+                in_search = in_re_search = False
+                search = ""
+                update_search = True
+            elif ord(k) == 10:
+                in_search = in_re_search = False
+            elif ord(k) == 127:
+                search = search[:-1]
+                update_search = True
+            else:
+                search += k
+                update_search = True
+
+            if update_search:
+                if len(search) == 0:
+                    papers = r[:]
+                else:
+                    if in_search:
+                        papers = filter_list(r, search)
+                    else:
+                        papers = filter_list_re(r, search)
+
+            v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers)-1)
+        else:
             if k == 'l':
                 list_of_tags(repo)
             elif k == 'a':
@@ -113,32 +139,12 @@ def ui_main_or_search_loop(r, repo):
                 break
             elif k == 's':
                 in_search = True
+            elif k == 'r':
+                in_re_search = True
             elif '0' <= k <= '5':
                 stars = int(k)
                 papers[v.selected()].set_stars(stars)
                 repo.update_paper(papers[v.selected()])
-        else:
-            update_search = False
-            if ord(k) == 27:
-                in_search = False
-                search = ""
-                update_search = True
-            elif ord(k) == 10:
-                in_search = False
-            elif ord(k) == 127:
-                search = search[:-1]
-                update_search = True
-            else:
-                search += k
-                update_search = True
-
-            if update_search:
-                if len(search) == 0:
-                    papers = r[:]
-                else:
-                    papers = filter_list(r, search)
-
-            v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers)-1)
 
 
 def run_ui(args, repo):

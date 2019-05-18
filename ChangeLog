@@ -1,6 +1,7 @@
 0.0.16 (not released yet)
 - feature: shortcut 'l' to show statistics about tags
 - feature: redraw when terminal is resized
+- feature: new default search is a substring search; regex search via 'r'
 - intern: refactored ui
 
 0.0.15

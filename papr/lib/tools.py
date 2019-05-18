@@ -7,7 +7,7 @@ from .paper import Paper
 VIEWER = "/usr/bin/evince"
 
 
-def exists_in(p, q):
+def re_exists_in(p: Paper, q):
     try:
         r = re.compile(q.lower())
         if r.search(p.title().lower()):
@@ -17,8 +17,19 @@ def exists_in(p, q):
         return False
 
 
-def filter_list(l, query):
-    return [i for i in l if exists_in(i, query)]
+def substrings_exist_in(paper: Paper, query):
+    for q in query.split():
+        if paper.title().lower().find(q.lower()) < 0:
+            return False
+    return True
+
+
+def filter_list(papers, query):
+    return [p for p in papers if substrings_exist_in(p, query)]
+
+
+def filter_list_re(papers, query):
+    return [p for p in papers if re_exists_in(p, query)]
 
 
 def show_pdf(p: Paper, repo_path):

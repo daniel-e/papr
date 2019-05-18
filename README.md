@@ -60,10 +60,10 @@ Run `papr --help` for further information.
 * a: Show abstract for paper.
 * i / Arrow up: Move selection up.
 * k / Arrow down: Move selection down.
-* s: Live search in title via regular expression.
+* s: Live search in title.
+* r: Live serach in title via regular expression.
 * n: Edit notes.
 * t: Edit tags.
 * 0..5: Set voting.
 * y: Show all stored information about a paper.
 * l: Show statistics about tags.
-
