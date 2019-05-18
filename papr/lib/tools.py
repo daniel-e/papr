@@ -25,11 +25,11 @@ def substrings_exist_in(paper: Paper, query):
 
 
 def filter_list(papers, query):
-    return [p for p in papers if substrings_exist_in(p, query)]
+    return [p for p in papers if substrings_exist_in(p, query) or len(query) == 0]
 
 
 def filter_list_re(papers, query):
-    return [p for p in papers if re_exists_in(p, query)]
+    return [p for p in papers if re_exists_in(p, query) or len(query) == 0]
 
 
 def show_pdf(p: Paper, repo_path):

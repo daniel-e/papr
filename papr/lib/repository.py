@@ -1,5 +1,6 @@
 import os
 import sys
+from collections import Counter
 
 from .db import Db
 from .config import Config
@@ -82,3 +83,10 @@ class Repository:
 
     def update_paper(self, p):
         self.db.update_paper(p)
+
+    def all_tags(self, sorted_by_usage=True):
+        # Get a list of list of tags.
+        l = [paper.tags() for paper in self.list()]
+        # Flatten the list and count the occurrences of each tag.
+        c = Counter([j for i in l for j in i])
+        return c.most_common()

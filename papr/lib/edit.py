@@ -79,13 +79,10 @@ def bar(n, maxn, maxlen=30):
 
 
 def list_of_tags(repo: Repository):
-    # Get a list of list of tags.
-    l = [paper.tags() for paper in repo.list()]
-    # Flatten the list and count the occurrences of each tag.
-    c = Counter([j for i in l for j in i])
-    maxtaglen = max([len(tag) for tag, _ in c.most_common()])
-    maxn = max([n for _, n in c.most_common()])
+    c = repo.all_tags()
+    maxtaglen = max([len(tag) for tag, _ in c])
+    maxn = max([n for _, n in c])
     msg = ""
-    for tag, n in c.most_common():
+    for tag, n in c:
         msg += tag + (" " * (maxtaglen - len(tag))) + " | " + "{:4}".format(n) + " " + bar(n, maxn) + "\n"
     less(msg)

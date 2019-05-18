@@ -13,6 +13,11 @@ def cursor_up(n):
     write('\033[' + str(n) + 'A')
 
 
+def cursor_down(n):
+    # http://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html
+    write('\033[' + str(n) + 'B')
+
+
 def cursor_bottom():
     write('\033[' + str(rows()) + 'B')
 

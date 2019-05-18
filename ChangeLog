@@ -2,6 +2,7 @@
 - feature: shortcut 'l' to show statistics about tags
 - feature: redraw when terminal is resized
 - feature: new default search is a substring search; regex search via 'r'
+- feature: filter by tag via 'f'
 - intern: refactored ui
 
 0.0.15
