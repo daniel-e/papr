@@ -1,5 +1,7 @@
 0.0.16 (not released yet)
 - feature: shortcut 'l' to show statistics about tags
+- feature: redraw when terminal is resized
+- intern: refactored ui
 
 0.0.15
 - feature: when downloading a paper also extract the abstract (only for arxiv and openreview)

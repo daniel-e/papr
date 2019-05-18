@@ -1,17 +1,13 @@
 import sys
 import termcolor
 
-from .console import cursor_on, cursor_up, cursor_off
+from .console import cursor_on, cursor_off, cursor_top_left
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
 from .termin import read_key
-from .termout import rows, empty_line, print_paper, cols
+from .termout import rows, empty_line, print_paper, cols, write
 from .tools import filter_list, show_pdf
 from .cmd_fetch import NEWTAG
-
-
-def write(s):
-    sys.stdout.write(s)
-    sys.stdout.flush()
+from .ui_scrollview import ScrollView
 
 
 def expand_to_colwidth(s: str):
@@ -45,52 +41,41 @@ def build_title():
         "white", "on_blue", attrs=["bold"])
 
 
-# The last element is selected.
-class ScrollView():
-    def __init__(self, n_elements, rows, selected):
-        self.n_elemens = n_elements
-        self.rows = rows
-        self._selected = selected    # selected is in [0..n_elements-1]
-        self.first_element_in_view = max(0, n_elements - rows)
-
-    def up(self):
-        if self.first_element_in_view == self._selected:
-            self.first_element_in_view = max(self.first_element_in_view - 1, 0)
-        self._selected = max(0, self._selected - 1)
-
-    def down(self):
-        if self._selected == self.first_element_in_view + self.rows - 1:
-            self.first_element_in_view = min(self.first_element_in_view + 1, self.n_elemens - self.rows)
-        self._selected = min(self._selected + 1, self.n_elemens - 1)
-
-    def selected(self):
-        return self._selected
-
-    def first(self):
-        return self.first_element_in_view
-
-    def end(self):
-        return self.first_element_in_view + self.rows
-
-
-def run_ui(args, repo):
-    r = repo.list()
-    if len(r) == 0:
-        print("Repository is empty.")
-        sys.exit(0)
-
-    if len(args) > 0:
-        r = filter_list(r, args[0])
-
-    cursor_off()
+def redraw(in_search, papers, v, search):
+    cursor_top_left()
     write(build_title())
 
-    n_window_rows = rows() - 1
+    if in_search:
+        write(build_search_header())
+    else:
+        write(build_default_header())
+    write(build_header())
 
+    cnt = 0 + 3
+    for idx, p in enumerate(papers[v.first():v.end()]):
+        print_paper(p, idx + v.first() == v.selected())
+        cnt += 1
+
+    # clear remaining lines
+    n_rows = rows()
+    while cnt < n_rows - 2:
+        cnt += 1
+        write(empty_line())
+
+    # search line
+    sys.stdout.write(empty_line() + "\r")
+    if in_search:
+        write("search: " + search + "▃")
+    elif len(search) > 0:
+        write("search: " + search)
+
+
+def ui_main_or_search_loop(r, repo):
     n_papers = len(r)
-    n_view_rows = n_window_rows - 3 - 1
+    n_view_rows = rows() - 3 - 1 - 1
     # -3 = 3 rows for header
     # -1 = 1 row for search line
+    # -1 = 1 "papr" header line
     v = ScrollView(n_elements=n_papers, rows=n_view_rows, selected=n_papers-1)
 
     search = ""
@@ -98,33 +83,12 @@ def run_ui(args, repo):
     papers = r[:]
 
     while True:
-        if in_search:
-            write(build_search_header())
-        else:
-            write(build_default_header())
-        write(build_header())
-
-        cnt = 0 + 3
-        for idx, p in enumerate(papers[v.first():v.end()]):
-            print_paper(p, idx + v.first() == v.selected())
-            cnt += 1
-        # clear remaining lines
-        while cnt < n_window_rows - 1:
-            cnt += 1
-            write(empty_line())
-
-        # search line
-        sys.stdout.write(empty_line() + "\r")
-        if in_search or len(search) > 0:
-            sys.stdout.write("search: " + search + "▃")
-            sys.stdout.flush()
-
-        cnt += 1
+        redraw(in_search, papers, v, search)
 
         k = read_key()
-        if k is None:
-            cursor_up(cnt)
+        if k is None or k == '~':
             continue
+
         if not in_search:
             if k == 'l':
                 list_of_tags(repo)
@@ -175,7 +139,19 @@ def run_ui(args, repo):
                     papers = filter_list(r, search)
 
             v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers)-1)
-        cursor_up(cnt)
+
+
+def run_ui(args, repo):
+    r = repo.list()
+    if len(r) == 0:
+        print("Repository is empty.")
+        sys.exit(0)
+
+    if len(args) > 0:
+        r = filter_list(r, args[0])
+
+    cursor_off()
+    ui_main_or_search_loop(r, repo)
     cursor_on()
     print()
 

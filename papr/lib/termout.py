@@ -1,5 +1,12 @@
 import os
+import sys
+
 import termcolor
+
+
+def write(s):
+    sys.stdout.write(s)
+    sys.stdout.flush()
 
 
 def _hr():

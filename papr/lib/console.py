@@ -1,16 +1,29 @@
 import sys
 
+from .termout import rows
+
+
+def write(s):
+    sys.stdout.write(s)
+    sys.stdout.flush()
+
 
 def cursor_up(n):
     # http://tldp.org/HOWTO/Bash-Prompt-HOWTO/x361.html
-    print('\033[' + str(n) + 'A')
+    write('\033[' + str(n) + 'A')
+
+
+def cursor_bottom():
+    write('\033[' + str(rows()) + 'B')
+
+
+def cursor_top_left():
+    write('\033[0;0H')
 
 
 def cursor_off():
-    sys.stdout.write("\x1b[?25l")
-    sys.stdout.flush()
+    write("\x1b[?25l")
 
 
 def cursor_on():
-    sys.stdout.write("\x1b[?25h")
-    sys.stdout.flush()
+    write("\x1b[?25h")
