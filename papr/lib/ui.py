@@ -157,6 +157,7 @@ def ui_main_or_search_loop(r, repo: Repository):
     papers = r[:]
 
     while True:
+        cursor_off()
         redraw(s, papers, v)
 
         k = read_key()
@@ -255,7 +256,6 @@ def run_ui(args, repo: Repository):
     if len(args) > 0:
         r = filter_list(r, args[0])
 
-    cursor_off()
     ui_main_or_search_loop(r, repo)
     cursor_on()
     print()
