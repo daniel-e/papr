@@ -1,11 +1,15 @@
+0.0.17
+* configure editor and pdf viewer
+* search in notes
+* extract authors
+* extract years
+
+Backlog
+
 * draw in a buffer first to avoid flickering
 * get latest papers from arxiv
 * refactoring of ui.py
 * filter by stars
 * search in abstract
-* search in notes
-* extract authors
-* extract years
 * time PDF added to the repository
 * highlight matches in search
-* configure editor and pdf viewer
