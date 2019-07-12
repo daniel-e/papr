@@ -44,6 +44,9 @@ Use Case: As a developer I want to publish a new version to PyPI
     python3 -m pip uninstall papr
     python3 -m pip install --no-cache-dir papr
 - commit everything
+- merge branche into master
+  - git checkout master
+  - git merge pre0.0.??
 - give it a tag, e.g. "v0.0.13" (git tag -a v0.0.13 -m comment)
 - push it (git push --tags)
 - announce
