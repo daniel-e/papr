@@ -51,8 +51,9 @@ def extent(s, width):
     return s + (" " * (width - len(s)))
 
 
-def write_box(content, select_lineno=None):
-    wmax = max([len(c) for c in content])
+def write_box(content, select_lineno=None, wmax=None, arrow_down=False, arrow_up=False):
+    if not wmax:
+        wmax = max([len(c) for c in content])
     write(colored("\r┌" + ("─" * wmax) + "┐", "white", "on_blue"))
     for idx, s in enumerate(content):
         cursor_down(1)
@@ -61,7 +62,12 @@ def write_box(content, select_lineno=None):
             write(colored(extent(s, wmax), "white", "on_red", True))
         else:
             write(colored(extent(s, wmax), "white", "on_blue"))
-        write(colored("│", "white", "on_blue"))
+        if arrow_up and idx == 0:
+            write(colored("↑", "blue", "on_white"))
+        elif arrow_down and idx == len(content) - 1:
+            write(colored("↓", "blue", "on_white"))
+        else:
+            write(colored("│", "white", "on_blue"))
     cursor_down(1)
     write(colored("\r└" + ("─" * wmax) + "┘", "white", "on_blue"))
 
@@ -87,7 +93,9 @@ def redraw(state, papers, v):
         cnt += 1
         write(empty_line())
 
+    # Now, the cursor is on the last line. Clear that line and go to the first column.
     sys.stdout.write(empty_line() + "\r")
+
     if state.in_search or state.in_re_search:
         write("Search: " + state.search + "▃")
     elif state.in_filter:
@@ -118,8 +126,15 @@ def redraw(state, papers, v):
             " f             : Filter (e.g. by tags).",
             " F             : Clear filter."
         ]
-        cursor_up(2+len(h))
-        write_box(h)
+        n = min(len(h), n_rows-2-1)   # number of lines in the box
+        offset = state.in_help_offset # index of element in h which should be the first line in the box
+        offset = min(offset, len(h)-n)
+        state.in_help_offset = offset
+        cursor_up(2+n)                # 2 lines for frame + n lines for text
+        width = max([len(c) for c in h])
+        arr_up = offset > 0
+        arr_down = offset < len(h) - n
+        write_box(h[offset:offset+n], wmax=width, arrow_down=arr_down, arrow_up=arr_up)
         # TODO scroll if it doesn't fit on screen
     else:
         if len(state.selected_tag) > 0:
@@ -143,6 +158,7 @@ class State:
         self.selected_tag = ""
 
         self.in_help = False
+        self.in_help_offset = 0
 
 
 def ui_main_or_search_loop(r, repo: Repository):
@@ -204,7 +220,12 @@ def ui_main_or_search_loop(r, repo: Repository):
                 else:
                     s.in_filter = False
         elif s.in_help:
-            s.in_help = False
+            if k == '#':
+                s.in_help_offset = max(0, s.in_help_offset - 1)
+            elif k == '+':
+                s.in_help_offset += 1
+            else:
+                s.in_help = False
         else:
             if k == 'l':
                 list_of_tags(repo)
