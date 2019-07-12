@@ -43,7 +43,7 @@ def build_search_header():
 
 def build_title():
     return termcolor.colored(
-        expand_to_colwidth("papr"),
+        expand_to_colwidth("papr 0.0.16"),
         "white", "on_blue", attrs=["bold"])
 
 
@@ -135,7 +135,6 @@ def redraw(state, papers, v):
         arr_up = offset > 0
         arr_down = offset < len(h) - n
         write_box(h[offset:offset+n], wmax=width, arrow_down=arr_down, arrow_up=arr_up)
-        # TODO scroll if it doesn't fit on screen
     else:
         if len(state.selected_tag) > 0:
             write("Tag: " + state.selected_tag)
@@ -210,7 +209,6 @@ def ui_main_or_search_loop(r, repo: Repository):
                     papers = [p for p in r if s.selected_tag in p.tags()]
                     v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers) - 1)
                     s.in_filter = False
-                    # TODO apply search
             else:
                 if k == 't':
                     s.select_tag = True

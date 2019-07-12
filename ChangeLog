@@ -1,4 +1,4 @@
-0.0.16 (not released yet)
+0.0.16
 - feature: shortcut 'l' to show statistics about tags
 - feature: redraw when terminal is resized
 - feature: new default search is a substring search; regex search via 'r'

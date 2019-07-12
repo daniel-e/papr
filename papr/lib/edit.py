@@ -85,4 +85,5 @@ def list_of_tags(repo: Repository):
     msg = ""
     for tag, n in c:
         msg += tag + (" " * (maxtaglen - len(tag))) + " | " + "{:4}".format(n) + " " + bar(n, maxn) + "\n"
+    msg += "\n\nPress q to quit."
     less(msg)
