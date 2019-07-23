@@ -17,7 +17,7 @@ NEWTAG="unread"
 
 
 def title_as_filename(s):
-    return re.sub(r'[^a-z0-9]', "_", re.sub(r'\s+', "_", s.lower()))
+    return re.sub(r'_+', '_', re.sub(r'[^a-z0-9]', "_", re.sub(r'\s+', "_", s.lower())))
 
 
 def normalize_title(s):
@@ -33,17 +33,19 @@ def prepare_data(title: str, repo: Repository):
 
 
 def add_local_file(f: str, args, repo: Repository):
+    tmp_title = ""
     if len(args) == 0:
-        print("For local files you need to specify the title of the paper.")
-        sys.exit(1)
+        tmp_title = determine_title_via_vim()
+    else:
+        tmp_title = args[0]
 
-    title, idx, filename, abspath = prepare_data(args[0], repo)
+    title, idx, filename, abspath = prepare_data(tmp_title, repo)
     if not os.path.exists(abspath):
         shutil.copy(f, abspath)
     p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
     repo.add_paper(p)
     print("Added paper.")
-    print("Title:", title)
+    print("Title   :", title)
     print("Filename:", filename)
 
 

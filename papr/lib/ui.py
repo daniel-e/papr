@@ -43,7 +43,7 @@ def build_search_header():
 
 def build_title():
     return termcolor.colored(
-        expand_to_colwidth("papr 0.0.16"),
+        expand_to_colwidth("papr 0.0.17"),
         "white", "on_blue", attrs=["bold"])
 
 

@@ -30,7 +30,7 @@ def help(exitcode=0):
     print("  last [<n>] Read the paper with the n-th largest ID. default: n = 1")
     print("")
     print("Adding papers")
-    print("  fetch  <file> <title>")
+    print("  fetch  <file> [title]")
     print("             Add a paper to the repository.  The file is copied to the")
     print("             repository. Filename will be <idx>_<normalized_title>.pdf")
     print("             If you don't specify a title you will be asked for it.")
