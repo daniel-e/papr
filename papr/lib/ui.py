@@ -1,6 +1,7 @@
 import sys
 import termcolor
 
+from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
 from .termin import read_key
@@ -160,7 +161,7 @@ class State:
         self.in_help_offset = 0
 
 
-def ui_main_or_search_loop(r, repo: Repository):
+def ui_main_or_search_loop(r, repo: Repository, conf: Config):
     n_papers = len(r)
     n_view_rows = rows() - 3 - 1 - 1
     # -3 = 3 rows for header
@@ -243,7 +244,7 @@ def ui_main_or_search_loop(r, repo: Repository):
                 p = v.selected()
                 papers[p].remove_tag(NEWTAG)
                 repo.update_paper(papers[p])
-                show_pdf(papers[p], repo.pdf_path())
+                show_pdf(papers[p], repo.pdf_path(), conf.get_viewer())
             elif ord(k) == 27 or k == 'q':
                 break
             elif k == 's':
@@ -266,7 +267,7 @@ def ui_main_or_search_loop(r, repo: Repository):
                 s.in_help = True
 
 
-def run_ui(args, repo: Repository):
+def run_ui(args, repo: Repository, conf: Config):
     r = repo.list()
     if len(r) == 0:
         print("Repository is empty.")
@@ -275,7 +276,7 @@ def run_ui(args, repo: Repository):
     if len(args) > 0:
         r = filter_list(r, args[0])
 
-    ui_main_or_search_loop(r, repo)
+    ui_main_or_search_loop(r, repo, conf)
     cursor_on()
     print()
 

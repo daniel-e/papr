@@ -4,9 +4,6 @@ from subprocess import Popen, DEVNULL
 from .paper import Paper
 
 
-VIEWER = "/usr/bin/evince"
-
-
 def re_exists_in(p: Paper, q):
     try:
         r = re.compile(q.lower())
@@ -32,7 +29,10 @@ def filter_list_re(papers, query):
     return [p for p in papers if re_exists_in(p, query) or len(query) == 0]
 
 
-def show_pdf(p: Paper, repo_path):
-    Popen([VIEWER, repo_path + "/" + p.filename()], stderr=DEVNULL, stdout=DEVNULL)
+def show_pdf(p: Paper, repo_path, path_viewer):
+    try:
+        Popen([path_viewer, repo_path + "/" + p.filename()], stderr=DEVNULL, stdout=DEVNULL)
+    except:
+        pass
 
 

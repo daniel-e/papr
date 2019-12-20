@@ -10,6 +10,7 @@ from .lib.cmd_init import cmd_init
 from .lib.cmd_last import cmd_last
 from .lib.cmd_list import cmd_list
 from .lib.cmd_read import cmd_read
+from .lib.cmd_config import cmd_config
 from .lib.cmd_search import cmd_search
 from .lib.ui import run_ui
 from .lib.config import Config
@@ -38,7 +39,7 @@ def parse_command(conf: Config, repo: Repository) -> None:
 
     # no arguments given -> show UI
     if len(sys.argv) < 2:
-        run_ui(sys.argv[2:], repo)
+        run_ui(sys.argv[2:], repo, conf)
         sys.exit(0)
 
     c = sys.argv[1]
@@ -54,6 +55,8 @@ def parse_command(conf: Config, repo: Repository) -> None:
         cmd_last(sys.argv[2:], repo)
     elif c == "add":
         cmd_add(sys.argv[2:], repo)
+    elif c == "config":
+        cmd_config(sys.argv[2:], conf)
     else:
         help(1)
 
