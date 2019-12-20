@@ -49,12 +49,14 @@ Use Case: As a developer I want to publish a new version to PyPI
   - git merge pre0.0.??
 - give it a tag, e.g. "v0.0.13" (git tag -a v0.0.13 -m comment)
 - push it (git push --tags)
+- test: pip3 install papr
 - announce
-  - use monospace font for "pip install papr" from https://yaytext.com/monospace/
-    𝚙𝚒𝚙 𝚒𝚗𝚜𝚝𝚊𝚕𝚕 𝚙𝚊𝚙𝚛 <- this should be UTF-8 chars monospaced
+  - use monospace font for "pip3 install papr" from https://yaytext.com/monospace/
+    𝚙𝚒𝚙3 𝚒𝚗𝚜𝚝𝚊𝚕𝚕 𝚙𝚊𝚙𝚛 <- this should be UTF-8 chars monospaced
+- branch for next version: git checkout -b v0.0.18
 
 Example:
-Just released version 0.0.16 of papr - a simple command line tool to manage scientific papers. New: improved search and filter by tags. [pip install papr] [screenshot] https://github.com/daniel-e/papr
+Just released version 0.0.17 of papr - a simple command line tool to manage scientific papers. New: highlight matches in search results + configure pdf viewer. [pip3 install papr] [screenshot] https://github.com/daniel-e/papr
 
 
 
