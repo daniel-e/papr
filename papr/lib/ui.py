@@ -6,7 +6,7 @@ from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_d
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
-from .tools import filter_list, show_pdf, filter_list_re
+from .tools import filter_list, show_pdf, filter_list_re, highlight_query
 from .cmd_fetch import NEWTAG
 from .ui_scrollview import ScrollView
 from .repository import Repository
@@ -181,6 +181,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
             continue
 
         if s.in_search or s.in_re_search:
+            for p in papers:
+                p.set_highlights([])
             f = filter_list_re if s.in_re_search else filter_list
 
             if ord(k) == 27:
@@ -194,6 +196,12 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 s.search += k
 
             papers = f(r, s.search)
+            # highlight search
+            if s.in_search:
+                for p in papers:
+                    positions = highlight_query(p, s.search)
+                    p.set_highlights(positions)
+
             if len(s.selected_tag) > 0:
                 papers = [p for p in papers if s.selected_tag in p.tags()]
             v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers)-1)
@@ -249,6 +257,10 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 break
             elif k == 's':
                 s.in_search = True
+                # copy&paste from above
+                for p in papers:
+                    positions = highlight_query(p, s.search)
+                    p.set_highlights(positions)
             elif k == 'r':
                 s.in_re_search = True
             elif '0' <= k <= '5':

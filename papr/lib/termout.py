@@ -60,10 +60,18 @@ def print_paper(paper, selected = False):
     if len(f) > n:
         f = f[:n - 3] + "..."
 
-    m = "{:5d} {}".format(paper.idx(), f)
-    s = colored("line", selected, m)
-    if len(m) < cols:
-        s = s + colored("line", selected, " " * (cols - len(m) - 2 - len_stars - len_tags))
+    orig_f = f
+
+    h = paper.highlights()[:]
+    h.sort(reverse=True)
+    for beg, end in h:
+        if beg < len(f):
+            f = f[:beg] + colored("highlight", True, f[beg:end]) + colored("line", selected, f[end:])
+
+    m = "{:5d} ".format(paper.idx())
+    s = colored("line", selected, m + f)
+    if len(m) + len(orig_f) < cols:
+        s = s + colored("line", selected, " " * (cols - len(m + orig_f) - 2 - len_stars - len_tags))
 
     if len_tags > 0:
         s = s + colored("line", selected, " [") + colored("tags", selected, tags) + colored("line", selected, "]")
@@ -80,6 +88,9 @@ def print_paper(paper, selected = False):
 
 def colored(typ, selected, s):
     mapping = {"line": "white", "tags": "green"}
+    if typ == "highlight":
+        return termcolor.colored(s, "yellow", 'on_yellow', attrs=["bold"])
+
     if selected:
         return termcolor.colored(s, mapping[typ], 'on_red', attrs=["bold"])
     else:

@@ -11,6 +11,8 @@ class Paper:
         self._stars = 0
         self._url = ""
         self._abstract = ""
+        # for search
+        self._highlights = []
 
     @staticmethod
     def from_json(idx, jsonstr):
@@ -104,3 +106,9 @@ class Paper:
 
     def url(self):
         return self._url
+
+    def set_highlights(self, positions):
+        self._highlights = positions
+
+    def highlights(self):
+        return self._highlights

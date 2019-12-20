@@ -21,6 +21,32 @@ def substrings_exist_in(paper: Paper, query):
     return True
 
 
+def merge_overlaps(positions):
+    if len(positions) < 2:
+        return positions
+    p = positions[:]
+    p.sort()
+    p_beg, p_end = p[0]
+    r_beg, r_end = p[1]
+    if r_beg < p_end:
+        return merge_overlaps(p[2:] + [(p_beg, max(p_end, r_end))])
+    else:
+        return [p[0]] + merge_overlaps(p[1:])
+
+
+def highlight_query(paper: Paper, query):
+    positions = []
+    for q in query.split():
+        start_pos = 0
+        while True:
+            pos = paper.title().lower().find(q.lower(), start_pos)
+            if pos == -1:
+                break
+            positions.append((pos, pos + len(q)))
+            start_pos = pos + len(q)
+    return merge_overlaps(positions)
+
+
 def filter_list(papers, query):
     return [p for p in papers if substrings_exist_in(p, query) or len(query) == 0]
 

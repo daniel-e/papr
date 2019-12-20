@@ -1,11 +1,11 @@
 0.0.17
-* configure editor and pdf viewer
-* search in notes
-* extract authors
-* extract years
 
 Backlog
 
+* search in notes
+* fulltext search
+* extract authors
+* extract years
 * draw in a buffer first to avoid flickering
 * get latest papers from arxiv
 * refactoring of ui.py

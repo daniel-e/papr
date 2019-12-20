@@ -1,5 +1,6 @@
 0.0.17 (in progress)
 - feature: call "papr config viewer <value>" to set the default viewer
+- feature: highlight matches for search
 
 0.0.16
 - feature: shortcut 'l' to show statistics about tags

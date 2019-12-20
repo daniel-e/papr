@@ -13,7 +13,8 @@ def cmd_search(args, repo: Repository):
     if len(r) == 0:
         print("empty")
         return
-    r = filter_list(r, args[0])
+    query = args[0]
+    r = filter_list(r, query)
     if len(r) == 0:
         print("Not found.")
     else:
