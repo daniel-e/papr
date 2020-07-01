@@ -1,6 +1,7 @@
 import sys
 import termcolor
 
+from .latest_version import latest_version
 from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
@@ -42,9 +43,14 @@ def build_search_header():
         "white", "on_yellow", attrs=["bold"])
 
 
-def build_title():
+def build_title(conf):
+    current_v = "0.0.17"
+    s = "papr " + current_v
+    v = conf.latest_version()
+    if len(v) > 0 and v != current_v:
+        s += " (new version available)"
     return termcolor.colored(
-        expand_to_colwidth("papr 0.0.17"),
+        expand_to_colwidth(s),
         "white", "on_blue", attrs=["bold"])
 
 
@@ -73,9 +79,9 @@ def write_box(content, select_lineno=None, wmax=None, arrow_down=False, arrow_up
     write(colored("\r└" + ("─" * wmax) + "┘", "white", "on_blue"))
 
 
-def redraw(state, papers, v):
+def redraw(state, papers, v, conf):
     cursor_top_left()
-    write(build_title())
+    write(build_title(conf))
 
     if state.in_search or state.in_re_search:
         write(build_search_header())
@@ -174,7 +180,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
 
     while True:
         cursor_off()
-        redraw(s, papers, v)
+        redraw(s, papers, v, conf)
 
         k = read_key()
         if k is None or k == '~':
@@ -287,6 +293,8 @@ def run_ui(args, repo: Repository, conf: Config):
 
     if len(args) > 0:
         r = filter_list(r, args[0])
+
+    latest_version(conf.set_latest_version)
 
     ui_main_or_search_loop(r, repo, conf)
     cursor_on()

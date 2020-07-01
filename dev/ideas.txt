@@ -1,7 +1,6 @@
-0.0.17
-
 Backlog
 
+* organize papers in lists
 * search in notes
 * fulltext search
 * extract authors

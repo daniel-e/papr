@@ -1,11 +1,10 @@
-FROM ubuntu:19.04
+FROM ubuntu:20.04
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get -y install apt-utils aptitude git curl net-tools iputils-ping tcpdump
 RUN apt-get -y install python3 python3-pip virtualenv
-RUN apt-get -y install jq
-RUN apt-get -y install evince
-RUN apt-get -y install vim
+RUN apt-get -y install jq evince vim
 
 RUN pip3 install bs4 termcolor
 

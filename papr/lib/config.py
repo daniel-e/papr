@@ -8,6 +8,7 @@ class Config:
         self.config_path = str(Path.home()) + "/.papr"
         self.config_file = self.config_path + "/papr.cfg"
         self._read_config()
+        self._latest_version = ""
 
     def get(self, key, default=""):
         return self.config.get(key, default)
@@ -45,3 +46,8 @@ class Config:
         self.config["default_repo"] = path
         self._write_config()
 
+    def latest_version(self):
+        return self._latest_version
+
+    def set_latest_version(self, version):
+        self._latest_version = version
