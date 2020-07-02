@@ -11,6 +11,7 @@ class Paper:
         self._stars = 0
         self._url = ""
         self._abstract = ""
+        self._hidden = False
         # for search
         self._highlights = []
 
@@ -26,6 +27,7 @@ class Paper:
         p._stars = int(data.get("stars", "0"))
         p._abstract = data.get("abstract", "")
         p._url = data.get("url", "")
+        p._hidden = False if data.get("hidden", "n") == "n" else True
         return p
 
     def as_nice_dict(self):
@@ -49,7 +51,8 @@ class Paper:
             "tags": ",".join(self._tags),
             "stars": self._stars,
             "abstract": self._abstract,
-            "url": self._url
+            "url": self._url,
+            "hidden": "y" if self._hidden else "n"
         }
         return d
 
@@ -115,3 +118,9 @@ class Paper:
 
     def highlights(self):
         return self._highlights
+
+    def hidden(self):
+        return self._hidden
+
+    def hide(self, value=True):
+        self._hidden = value

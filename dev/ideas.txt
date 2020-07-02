@@ -1,8 +1,5 @@
 Backlog
 
-* hide paper
-* show hidden papers
-
 * organize papers in lists
 * search in notes
 * fulltext search

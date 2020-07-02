@@ -132,7 +132,9 @@ def redraw(state, papers, v, conf):
             " y             : Show all stored information about a paper.",
             " l             : Show statistics about tags.",
             " f             : Filter (e.g. by tags).",
-            " F             : Clear filter."
+            " F             : Clear filter.",
+            " c             : Hide/show paper.",
+            " .             : Show hidden/visible papers."
         ]
         n = min(len(h), n_rows-2-1)   # number of lines in the box
         offset = state.in_help_offset # index of element in h which should be the first line in the box
@@ -167,6 +169,8 @@ class State:
         self.in_help = False
         self.in_help_offset = 0
 
+        self.show_hidden = False
+
 
 def ui_main_or_search_loop(r, repo: Repository, conf: Config):
     n_papers = len(r)
@@ -180,6 +184,22 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
     papers = r[:]
 
     while True:
+        if s.show_hidden:
+            filtered_papers = [p for p in papers if p.hidden()]
+            if len(filtered_papers) != len(papers):
+                papers = filtered_papers
+                pos = min(v.selected(), len(papers) - 1)
+                v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=pos)
+        else:
+            # Filter hidden papers
+            filtered_papers = [p for p in papers if not p.hidden()]
+            if len(filtered_papers) != len(papers):
+                papers = filtered_papers
+                pos = min(v.selected(), len(papers) - 1)
+                v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=pos)
+
+
+
         cursor_off()
         redraw(s, papers, v, conf)
 
@@ -286,6 +306,13 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 s.in_help = True
             elif k == 'e':
                 edit_title(papers[v.selected()], repo)
+            elif k == 'c':
+                p = papers[v.selected()]
+                p.hide(not p.hidden())
+                repo.update_paper(p)
+            elif k == '.':
+                s.show_hidden = not s.show_hidden
+                papers = r[:]
 
 
 def run_ui(args, repo: Repository, conf: Config):
