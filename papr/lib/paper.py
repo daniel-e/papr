@@ -68,6 +68,9 @@ class Paper:
     def title(self):
         return self._title
 
+    def set_title(self, t):
+        self._title = t
+
     def msg(self):
         return self._msg
 

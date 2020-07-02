@@ -1,5 +1,6 @@
 0.0.18 (in progress)
 - feature: if a new version is available make this visible
+- feature: change title of a paper
 
 0.0.17
 - feature: call "papr config viewer <value>" to set the default viewer

@@ -15,6 +15,8 @@ def create_tmp_file(msg):
     return pth
 
 
+# Open the string stored in _msg_ in an editor.
+# Returns: content of edited file
 def editor(msg, n=None):
     e = os.getenv('EDITOR', 'vim')
     pth = create_tmp_file(msg)
@@ -87,3 +89,11 @@ def list_of_tags(repo: Repository):
         msg += tag + (" " * (maxtaglen - len(tag))) + " | " + "{:4}".format(n) + " " + bar(n, maxn) + "\n"
     msg += "\n\nPress q to quit."
     less(msg)
+
+
+def edit_title(p: Paper, r: Repository):
+    msg = editor(p.title()).strip()
+    if msg != p.title():
+        p.set_title(msg)
+        r.update_paper(p)
+

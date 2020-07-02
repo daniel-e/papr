@@ -4,7 +4,7 @@ import termcolor
 from .latest_version import latest_version
 from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down
-from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags
+from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
 from .tools import filter_list, show_pdf, filter_list_re, highlight_query
@@ -127,6 +127,7 @@ def redraw(state, papers, v, conf):
             " r             : Live search in title via regular expression. ",
             " n             : Edit notes.",
             " t             : Edit tags.",
+            " e             : Edit title.",
             " 0..5          : Set voting.",
             " y             : Show all stored information about a paper.",
             " l             : Show statistics about tags.",
@@ -283,6 +284,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 # TODO: consider search
             elif k == 'h':
                 s.in_help = True
+            elif k == 'e':
+                edit_title(papers[v.selected()], repo)
 
 
 def run_ui(args, repo: Repository, conf: Config):

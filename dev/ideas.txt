@@ -1,5 +1,8 @@
 Backlog
 
+* hide paper
+* show hidden papers
+
 * organize papers in lists
 * search in notes
 * fulltext search
@@ -11,4 +14,3 @@ Backlog
 * filter by stars
 * search in abstract
 * time PDF added to the repository
-* highlight matches in search
