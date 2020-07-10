@@ -193,6 +193,13 @@ class State:
         self.in_help_offset = 0
 
         self.show_hidden = False
+        self.show_menu = False
+
+
+def center_box(content):
+    posy = max(0, rows() // 2 - len(content) // 2)
+    posx = max(0, cols() // 2 - max([len(i) for i in content]) // 2)
+    return posx, posy
 
 
 def show_new_features(conf: Config):
@@ -210,8 +217,7 @@ def show_new_features(conf: Config):
         "  papers visible again. You can change between the list of hidden and",
         "  visible papers with the key '.'"
     ]
-    posy = max(0, rows() // 2 - len(message) // 2)
-    posx = max(0, cols() // 2 - max([len(i) for i in message]) // 2)
+    posx, posy = center_box(message)
     write_box_xy(posx, posy, message)
 
 
@@ -252,7 +258,27 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
             read_key()
             continue
 
-        k = read_key()
+        # Menu
+        k = None
+        if s.show_menu:
+            menu = [
+                " Edit title                  "
+            ]
+            posx, posy = center_box(menu)
+            while True:
+                write_box_xy(posx, posy, menu, select_lineno=0)
+                k = read_key()
+                if ord(k) == 27 or k == 'q':
+                    s.show_menu = False
+                    k = None
+                    break
+                elif ord(k) == 10:
+                    k = 'e'
+                    s.show_menu = False
+                    break
+        else:
+            k = read_key()
+
         if k is None or k == '~':
             continue
 
@@ -362,6 +388,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
             elif k == '.':
                 s.show_hidden = not s.show_hidden
                 papers = r[:]
+            elif k == ' ':
+                s.show_menu = True
 
 
 def run_ui(args, repo: Repository, conf: Config):
