@@ -3,7 +3,7 @@ import termcolor
 
 from .latest_version import latest_version
 from .config import Config
-from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down
+from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down, write_xy
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
@@ -44,7 +44,7 @@ def build_search_header():
 
 
 def build_title(conf):
-    current_v = "0.0.17"
+    current_v = conf.papr_version()
     s = "papr " + current_v
     v = conf.latest_version()
     if len(v) > 0 and v != current_v:
@@ -58,6 +58,29 @@ def extent(s, width):
     return s + (" " * (width - len(s)))
 
 
+# TODO copy&paste
+def write_box_xy(x, y, content, select_lineno=None, wmax=None, arrow_down=False, arrow_up=False):
+    if not wmax:
+        wmax = max([len(c) for c in content])
+    write_xy(x, y, colored("┌" + ("─" * wmax) + "┐", "white", "on_blue"))
+    y += 1
+    for idx, s in enumerate(content):
+        write_xy(x, y, colored("│", "white", "on_blue"))
+        if idx == select_lineno:
+            write(colored(extent(s, wmax), "white", "on_red", True))
+        else:
+            write(colored(extent(s, wmax), "white", "on_blue"))
+        if arrow_up and idx == 0:
+            write(colored("↑", "blue", "on_white"))
+        elif arrow_down and idx == len(content) - 1:
+            write(colored("↓", "blue", "on_white"))
+        else:
+            write(colored("│", "white", "on_blue"))
+        y += 1
+    write_xy(x, y, colored("└" + ("─" * wmax) + "┘", "white", "on_blue"))
+
+
+# content: List of strings
 def write_box(content, select_lineno=None, wmax=None, arrow_down=False, arrow_up=False):
     if not wmax:
         wmax = max([len(c) for c in content])
@@ -172,6 +195,26 @@ class State:
         self.show_hidden = False
 
 
+def show_new_features(conf: Config):
+    message = [
+        "CHANGES FROM 0.0.17 TO 0.0.18",
+        "",
+        "• You can now change the title of a paper with the key 'e'.",
+        "• Never miss a new version! If a new version is available, it will be",
+        "  shown at the top of the screen.",
+        "  For this the setup.py from the GitHub repository is retrieved and",
+        "  checked.",
+        "• When you upgrade papr to the latest version this message with changes",
+        "  is shown on the first start.",
+        "• You can hide papers with the key 'c'. Use the same key to make hidden",
+        "  papers visible again. You can change between the list of hidden and",
+        "  visible papers with the key '.'"
+    ]
+    posy = max(0, rows() // 2 - len(message) // 2)
+    posx = max(0, cols() // 2 - max([len(i) for i in message]) // 2)
+    write_box_xy(posx, posy, message)
+
+
 def ui_main_or_search_loop(r, repo: Repository, conf: Config):
     n_papers = len(r)
     n_view_rows = rows() - 3 - 1 - 1
@@ -202,6 +245,12 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
 
         cursor_off()
         redraw(s, papers, v, conf)
+
+        # If a new version is started for the first time show the new features.
+        if not conf.new_features_already_shown():
+            show_new_features(conf)
+            read_key()
+            continue
 
         k = read_key()
         if k is None or k == '~':
@@ -324,6 +373,7 @@ def run_ui(args, repo: Repository, conf: Config):
     if len(args) > 0:
         r = filter_list(r, args[0])
 
+    # Retrieve latest version of papr from GitHub.
     latest_version(conf.set_latest_version)
 
     ui_main_or_search_loop(r, repo, conf)

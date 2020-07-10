@@ -4,6 +4,8 @@ import os
 
 
 class Config:
+    _PAPR_VERSION = "0.0.17"
+
     def __init__(self):
         self.config_path = str(Path.home()) + "/.papr"
         self.config_file = self.config_path + "/papr.cfg"
@@ -26,7 +28,8 @@ class Config:
         self.config = {
             "cfg_version": "0.0.2",
             "default_repo": "null",
-            "viewer": "/usr/bin/evince"
+            "viewer": "/usr/bin/evince",
+            "last_version_started": self.papr_version()
         }
         self._write_config()
 
@@ -51,3 +54,16 @@ class Config:
 
     def set_latest_version(self, version):
         self._latest_version = version
+
+    def papr_version(self):
+        return self._PAPR_VERSION
+
+    def new_features_already_shown(self):
+        key = "last_version_started"
+        v = self.papr_version()
+        last_version_started = self.config.get(key, "")
+        if last_version_started != v:
+            self.config[key] = v
+            self._write_config()
+            return False
+        return True

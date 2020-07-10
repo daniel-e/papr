@@ -1,13 +1,14 @@
 # Papr
 
-Papr is a tool to manage and quickly access scientific papers from the command line.
+Papr is a tool to manage and quickly access scientific papers on the command line.
 
 **Features**
 
-* **Fast search:** search in the title of papers via regular expressions.
+* **Fast search:** search in the title of papers via regular expressions or trigrams.
 * **Notes:** create notes for each paper.
-* **Rating of papers:** rate your papers via five star rating system.
+* **Rating of papers:** rate your papers via a five star rating system.
 * **Tags:** assign each paper different tags.
+* **Import from arXiv:** automatically import papers with title and abstract from arXiv
 
 ![papr](screenshot.png)
 
