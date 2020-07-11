@@ -1,8 +1,10 @@
-0.0.18 (in progress)
+0.0.18 (ready to publish)
 - feature: if a new version of papr is available show this at the top
 - feature: change title of a paper
 - feature: hide papers
 - feature: show changelog on first start after upgrading papr to a new version
+- feature: context menu when key 'space' is pressed
+- feature: create a summary and list papers with a summary
 
 0.0.17
 - feature: call "papr config viewer <value>" to set the default viewer
