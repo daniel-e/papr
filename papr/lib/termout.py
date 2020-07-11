@@ -37,12 +37,16 @@ def print_header():
     return cols
 
 
-def print_paper(paper, selected = False):
+def print_paper(paper, selected=False):
+    print(paper_line(paper, selected))
+
+
+def paper_line(paper, selected=False):
     cols, _ = os.get_terminal_size(0)
     # 5 columns for id
     # 1 columns for space
     # 2 columns at the end of the line for notes
-    # n columns for filename
+    # n columns for title
 
     stars = ""
     if paper.stars() >= 0:
@@ -83,7 +87,7 @@ def print_paper(paper, selected = False):
     else:
         s += colored("line", selected, "  ")
 
-    print(s)
+    return s
 
 
 def colored(typ, selected, s):

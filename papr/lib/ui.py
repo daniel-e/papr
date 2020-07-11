@@ -4,7 +4,7 @@ import termcolor
 from .latest_version import latest_version
 from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down, write_xy
-from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title
+from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, summary_of_paper, show_summaries
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
 from .tools import filter_list, show_pdf, filter_list_re, highlight_query
@@ -115,6 +115,11 @@ def redraw(state, papers, v, conf):
     cnt = 0 + 3
     for idx, p in enumerate(papers[v.first():v.end()]):
         print_paper(p, idx + v.first() == v.selected())
+        #if state.show_summary:
+        #    l = "Foo"
+        #    s = " " * 6 + l + " " * (cols() - 6 - len(l))
+        #    print(s)
+        #    cnt += 1
         cnt += 1
 
     # clear remaining lines
@@ -158,7 +163,8 @@ def redraw(state, papers, v, conf):
             " F             : Clear filter.",
             " c             : Hide/show paper.",
             " .             : Show hidden/visible papers.",
-            " space         : Open a context menu"
+            " space         : Open a context menu.",
+            " m             : List all papers with a summary."
         ]
         n = min(len(h), n_rows-2-1)   # number of lines in the box
         offset = state.in_help_offset # index of element in h which should be the first line in the box
@@ -218,6 +224,9 @@ def show_new_features(conf: Config):
         "  papers visible again. You can change between the list of hidden and",
         "  visible papers with the key '.'",
         "• Press 'space' to get a context menu.",
+        "• You can already create notes for a paper. Now, you can also create a",
+        "  summary. Just select 'edit summary' from the context menu or use the",
+        "  shortcut 'U'. List all papers with a summary with the shortcut 'm'."
     ]
     posx, posy = center_box(message)
     write_box_xy(posx, posy, message)
@@ -283,6 +292,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 [" Edit notes                  ", "n"],
                 [" Edit title                  ", "e"],
                 [" Edit tags                   ", "t"],
+                [" Edit summary                ", "U"],
                 [" Show abstract               ", "a"],
                 [" Show details                ", "y"]
             ]
@@ -363,6 +373,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 v.down()
             elif k == 'n':
                 notes_of_paper(repo, papers[v.selected()])
+            elif k == 'U':
+                summary_of_paper(repo, papers[v.selected()])
             elif k == 't':
                 tags_of_paper(repo, papers[v.selected()])
             elif ord(k) == 10:
@@ -405,6 +417,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 papers = r[:]
             elif k == ' ':
                 s.show_menu = True
+            elif k == 'm':
+                show_summaries(repo, cols())
 
 
 def run_ui(args, repo: Repository, conf: Config):

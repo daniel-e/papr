@@ -12,6 +12,7 @@ class Paper:
         self._url = ""
         self._abstract = ""
         self._hidden = False
+        self._summary = ""
         # for search
         self._highlights = []
 
@@ -23,6 +24,7 @@ class Paper:
         p._filename = data["filename"]
         p._title = data["title"]
         p._msg = data.get("msg", "")
+        p._summary = data.get("summary", "")
         p._tags = [i for i in data.get("tags", "").split(",") if len(i) > 0]
         p._stars = int(data.get("stars", "0"))
         p._abstract = data.get("abstract", "")
@@ -35,6 +37,7 @@ class Paper:
             "filename": "Filename",
             "title": "Title",
             "msg": "Notes",
+            "summary": "Summary",
             "tags": "Tags",
             "stars": "Voting",
             "abstract": "Abstract",
@@ -48,6 +51,7 @@ class Paper:
             "filename": self._filename,
             "title": self._title,
             "msg": self._msg,
+            "summary": self._summary,
             "tags": ",".join(self._tags),
             "stars": self._stars,
             "abstract": self._abstract,
@@ -79,6 +83,12 @@ class Paper:
 
     def update_msg(self, msg):
         self._msg = msg
+
+    def summary(self):
+        return self._summary
+
+    def update_summary(self, summary):
+        self._summary = summary
 
     def has_notes(self):
         return len(self._msg) > 0

@@ -3,6 +3,8 @@ import os
 from collections import Counter
 from subprocess import call
 
+import termcolor
+
 from .paper import Paper
 from .repository import Repository
 
@@ -31,9 +33,9 @@ def editor(msg, n=None):
     return msg
 
 
-def less(msg):
+def less(msg, args=[]):
     pth = create_tmp_file(msg)
-    cmd = ["less", "-c", pth]
+    cmd = ["less", "-c"] + args + [pth]
     call(cmd)
 
 
@@ -41,6 +43,13 @@ def notes_of_paper(repo: Repository, p: Paper):
     msg = p.msg()
     msg = editor(msg, 1).strip()
     p.update_msg(msg)
+    repo.update_paper(p)
+
+
+def summary_of_paper(repo: Repository, p: Paper):
+    summary = p.summary()
+    summary = editor(summary, 1).strip()
+    p.update_summary(summary)
     repo.update_paper(p)
 
 
@@ -97,3 +106,16 @@ def edit_title(p: Paper, r: Repository):
         p.set_title(msg)
         r.update_paper(p)
 
+
+def show_summaries(repo: Repository, width):
+    papers = repo.list()
+    msg = ""
+    for p in papers:
+        if len(p.summary().strip()) > 0:
+            t = p.title()
+            d = max(0, width - len(t))
+            msg += termcolor.colored(t + " " * d, "white", "on_blue", attrs=["bold"]) + "\n"
+            msg += "─" * width + "\n"
+            msg += p.summary() + "\n\n"
+    msg += termcolor.colored("\nPress q to quit.", "white", "on_red", attrs=["bold"])
+    less(msg, ["-r"])
