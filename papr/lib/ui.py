@@ -157,7 +157,8 @@ def redraw(state, papers, v, conf):
             " f             : Filter (e.g. by tags).",
             " F             : Clear filter.",
             " c             : Hide/show paper.",
-            " .             : Show hidden/visible papers."
+            " .             : Show hidden/visible papers.",
+            " space         : Open a context menu"
         ]
         n = min(len(h), n_rows-2-1)   # number of lines in the box
         offset = state.in_help_offset # index of element in h which should be the first line in the box
@@ -215,10 +216,27 @@ def show_new_features(conf: Config):
         "  is shown on the first start.",
         "• You can hide papers with the key 'c'. Use the same key to make hidden",
         "  papers visible again. You can change between the list of hidden and",
-        "  visible papers with the key '.'"
+        "  visible papers with the key '.'",
+        "• Press 'space' to get a context menu.",
     ]
     posx, posy = center_box(message)
     write_box_xy(posx, posy, message)
+
+
+def select_item(menu):
+    posx, posy = center_box(menu)
+    selection = 0
+    while True:
+        write_box_xy(posx, posy, menu, select_lineno=selection)
+        k = read_key()
+        if ord(k) == 27 or k == 'q':
+            return None
+        elif ord(k) == 10:  # Enter
+            return selection
+        elif k == 'i' or k == '#':
+            selection = max(0, selection - 1)
+        elif k == 'k' or k == '+':
+            selection = min(len(menu) - 1, selection + 1)
 
 
 def ui_main_or_search_loop(r, repo: Repository, conf: Config):
@@ -261,21 +279,18 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
         # Menu
         k = None
         if s.show_menu:
-            menu = [
-                " Edit title                  "
+            values = [
+                [" Edit notes                  ", "n"],
+                [" Edit title                  ", "e"],
+                [" Edit tags                   ", "t"],
+                [" Show abstract               ", "a"],
+                [" Show details                ", "y"]
             ]
-            posx, posy = center_box(menu)
-            while True:
-                write_box_xy(posx, posy, menu, select_lineno=0)
-                k = read_key()
-                if ord(k) == 27 or k == 'q':
-                    s.show_menu = False
-                    k = None
-                    break
-                elif ord(k) == 10:
-                    k = 'e'
-                    s.show_menu = False
-                    break
+            menu = [i[0] for i in values]
+            k = select_item(menu)
+            if k is not None:
+                k = values[k][1]
+            s.show_menu = False
         else:
             k = read_key()
 
