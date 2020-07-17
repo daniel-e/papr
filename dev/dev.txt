@@ -33,6 +33,10 @@ Use Case: As a developer I want to publish a new version to PyPI
 - Set a new version in config.py::_PAPR_VERSION
 - Set a new version in Makefile (section reinstall)
 - Update new feature description in ui.py::show_new_features
+- commit everything into branch + push
+- merge branch into master
+  - git checkout master
+  - git merge pre0.0.??
 
 - make build
 - python3 -m pip install --user --upgrade twine
@@ -46,10 +50,6 @@ Use Case: As a developer I want to publish a new version to PyPI
     make runimage
     python3 -m pip uninstall papr
     python3 -m pip install --no-cache-dir papr
-- commit everything
-- merge branche into master
-  - git checkout master
-  - git merge pre0.0.??
 - give it a tag, e.g. "v0.0.13" (git tag -a v0.0.13 -m comment)
 - push it (git push --tags)
 - test: pip3 install papr
