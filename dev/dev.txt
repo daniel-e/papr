@@ -31,7 +31,9 @@ Use Case: As a developer I want to publish a new version to PyPI
 
 - Set a new version in setup.py.
 - Set a new version in config.py::_PAPR_VERSION
+- Set a new version in Makefile (section reinstall)
 - Update new feature description in ui.py::show_new_features
+
 - make build
 - python3 -m pip install --user --upgrade twine
 - test.pypi.org

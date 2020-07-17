@@ -19,7 +19,7 @@ runimage:
 	docker run --dns=8.8.8.8 -t -i -e DISPLAY=${DISPLAY} -v ${PWD}:/host/ -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1
 
 reinstall: clean build
-	pip3 install --user --no-deps --force-reinstall dist/papr-0.0.17-py3-none-any.whl
+	pip3 install --user --no-deps --force-reinstall dist/papr-0.0.18-py3-none-any.whl
 
 indocker:
 	docker run -t -i -e DISPLAY=${DISPLAY} -v ${PWD}/papr:/root/papr/papr -v ${PWD}/scripts:/root/papr/scripts -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/shm:/dev/shm --rm papr/1
