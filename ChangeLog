@@ -1,4 +1,4 @@
-0.0.18 (ready to publish)
+0.0.18
 - feature: if a new version of papr is available show this at the top
 - feature: change title of a paper
 - feature: hide papers

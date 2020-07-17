@@ -36,8 +36,10 @@ Use Case: As a developer I want to publish a new version to PyPI
 - commit everything into branch + push
 - merge branch into master
   - git checkout master
-  - git merge pre0.0.??
-
+  - git merge v0.0.??
+  - git push (to master)
+- create screenshot
+- make clean
 - make build
 - python3 -m pip install --user --upgrade twine
 - test.pypi.org
@@ -59,7 +61,7 @@ Use Case: As a developer I want to publish a new version to PyPI
 - branch for next version: git checkout -b v0.0.18
 
 Example:
-Just released version 0.0.17 of papr - a simple command line tool to manage scientific papers. New: highlight matches in search results + configure pdf viewer. [pip3 install papr] [screenshot] https://github.com/daniel-e/papr
+Released version 0.0.18 of papr - a simple command line tool to manage scientific papers. New: create summaries, context menu, hide papers, change title, new version notification. [pip3 install papr] [screenshot] https://github.com/daniel-e/papr
 
 
 
