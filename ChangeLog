@@ -1,4 +1,6 @@
 0.0.19 (in progress)
+- bugfix: less is confused when showing lines with escape sequences having as many characters as the terminal size
+- feature: split long lines at spaces when shown with less so that words are not split
 
 0.0.18
 - feature: if a new version of papr is available show this at the top

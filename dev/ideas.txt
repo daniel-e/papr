@@ -1,5 +1,6 @@
 Backlog
 
+* page up/down to scroll
 * organize papers in lists
 * search in notes
 * fulltext search

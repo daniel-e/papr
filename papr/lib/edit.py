@@ -107,15 +107,29 @@ def edit_title(p: Paper, r: Repository):
         r.update_paper(p)
 
 
+def wrap_lines(s, width):
+    lines = []
+    while len(s) > width:
+        pos = width
+        while s[pos] != ' ':
+            pos -= 1
+        lines.append(s[:pos])
+        s = s[pos+1:]
+    if len(s) > 0:
+        lines.append(s)
+    return "\n".join(lines)
+
+
 def show_summaries(repo: Repository, width):
     papers = repo.list()
     msg = ""
+    width -= 1  # less has trouble to correctly show the content when not doing this
     for p in papers:
         if len(p.summary().strip()) > 0:
             t = p.title()
             d = max(0, width - len(t))
             msg += termcolor.colored(t + " " * d, "white", "on_blue", attrs=["bold"]) + "\n"
             msg += "─" * width + "\n"
-            msg += p.summary() + "\n\n"
+            msg += wrap_lines(p.summary(), width) + "\n\n"
     msg += termcolor.colored("\nPress q to quit.", "white", "on_red", attrs=["bold"])
     less(msg, ["-r"])
