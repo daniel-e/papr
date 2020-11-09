@@ -1,10 +1,15 @@
+import os
 import sys
+from pathlib import Path
+
 import termcolor
 
 from .latest_version import latest_version
 from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down, write_xy
-from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, summary_of_paper, show_summaries
+from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, \
+    summary_of_paper, show_summaries
+from .html import export_html
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
 from .tools import filter_list, show_pdf, filter_list_re, highlight_query
@@ -419,6 +424,52 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 s.show_menu = True
             elif k == 'm':
                 show_summaries(repo, cols())
+            elif k == 'x':
+                file_dialog(repo, conf)
+
+
+# TODO duplicate code
+def show_dialog(x, y, width, header="", content=None):
+    write_xy(x, y, colored("┌" + ("─" * width) + "┐", "white", "on_blue"))
+    y += 1
+    for idx, s in enumerate(header):
+        write_xy(x, y, colored("│", "white", "on_blue"))
+        write(colored(extent(s, width), "white", "on_blue"))
+        write(colored("│", "white", "on_blue"))
+        y += 1
+    if content is not None:
+        write_xy(x, y, colored("│", "white", "on_blue"))
+        write(colored(extent(content, width), "white", "on_red", True))
+        write(colored("│", "white", "on_blue"))
+        y += 1
+    write_xy(x, y, colored("└" + ("─" * width) + "┘", "white", "on_blue"))
+
+# TODO make it reusable
+def file_dialog(repo: Repository, conf: Config):
+    width = min(cols() - 2, 40)
+    y = rows() // 2 - 2
+    x = cols() // 2 - width // 2
+    s = conf.get_export_path(os.path.join(str(Path.home()), "papers.html"))
+    while True:
+        val = s + "▃"
+        if len(s) >= width:
+            val = val[-width:]
+        show_dialog(x, y, width, header=["Filename for export:"], content=val)
+        key = read_key()
+        if key is None:
+            continue
+        if ord(key) == 27:
+            break
+        elif ord(key) == 10:
+            conf.set_export_path(s)
+            export_html(repo, s)
+            show_dialog(x, y, width, header=["Repository exported to:", s[:width]])
+            read_key()
+            break
+        elif ord(key) == 127:
+            s = s[:-1]
+        elif key.isprintable():
+            s += key
 
 
 def run_ui(args, repo: Repository, conf: Config):

@@ -10,7 +10,7 @@ from .repository import Repository
 
 
 def create_tmp_file(msg):
-    _, pth = tempfile.mkstemp(".tmp")
+    _, pth = tempfile.mkstemp(".tmp.md")
     f = open(pth, "wt")
     f.write(msg)
     f.close()

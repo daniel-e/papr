@@ -17,6 +17,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/daniel-e/papr",
     packages=['papr', 'papr/lib'],
+    package_data={'papr': ['html/*']},
     #include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -25,6 +26,7 @@ setuptools.setup(
     ],
     install_requires=[
         'bs4',
-        'termcolor'
+        'termcolor',
+        'Markdown'
     ]
 )

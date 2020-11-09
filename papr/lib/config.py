@@ -38,6 +38,13 @@ class Config:
         f.write(json.dumps(self.config))
         f.close()
 
+    def get_export_path(self, default):
+        return self.get("export_path", default)
+
+    def set_export_path(self, path):
+        self.config["export_path"] = path
+        self._write_config()
+
     def get_viewer(self):
         return self.get("viewer", "/usr/bin/evince")
 
