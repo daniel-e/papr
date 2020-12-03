@@ -6,18 +6,18 @@ from .repository import Repository
 
 def map_header(header):
     color = {
-        "Abstract": "btn-outline-primary",
-        "Notes": "btn-outline-success",
-        "Summary": "btn-outline-danger"
+        "Abstract": "alert-primary",
+        "Notes": "alert-success",
+        "Summary": "alert-danger"
     }
     return color.get(header, "btn-outline-dark")
 
 
 def add_header(header):
     if header is not None:
-        return '<button type="button" class="btn ' + \
-               map_header(header) + ' btn-sm">' + header + \
-               '</button>'
+        return '<div class="alert ' + \
+               map_header(header) + ' btn-sm" role="alert" style="text-align: center; font-weight:bold">' + header + \
+               '</div>'
     return ""
 
 
@@ -27,7 +27,7 @@ def ashtml(s: str, header=None):
 
 
 def stars(n):
-    return ("★"*n)+("☆"*(5-n))
+    return ("★"*n) + ("☆"*(5-n))
 
 
 def export_html(repo: Repository, dstfile):
@@ -40,13 +40,14 @@ def export_html(repo: Repository, dstfile):
         for p in reversed(repo.list()):
             print(
                 "<thead class='thead-dark'><tr><th>{}</th></tr></thead>"  # title
-                "<tr><td>{}&nbsp;&nbsp;&nbsp;<a href='{}'>{}</a></td></tr>"  # url
+                "<tr><td>{}&nbsp;&nbsp;&nbsp;<a href='{}'>extern link</a></td></tr>"  # url
                 "{}"  # abstract
                 "{}"  # summary
                 "{}"  # notes
-                .format(p.title(), stars(p.stars()), p.url(), p.url(),
+                .format(p.title(), stars(p.stars()), p.url(),
                         ashtml(p.abstract(), "Abstract"),
                         ashtml(p.summary(), "Summary"),
-                        ashtml(p.msg(), "Notes")), file=f)
+                        ashtml(p.msg(), "Notes")
+                        ), file=f)
         print('</table>', file=f)
         print(footer, file=f)

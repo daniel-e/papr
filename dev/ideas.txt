@@ -1,5 +1,7 @@
 Backlog
 
+* fetch more than one paper
+* template for notes + guideline to create colored noted in vim
 * page up/down to scroll
 * organize papers in lists
 * search in notes
