@@ -21,6 +21,7 @@ from .lib.cmd_fetch import cmd_fetch
 
 
 def parse_command(conf: Config, repo: Repository) -> None:
+    # TODO use argparse
     if len(sys.argv) > 1:
         c = sys.argv[1]
         if c == "init":

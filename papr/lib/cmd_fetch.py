@@ -5,6 +5,7 @@ import urllib.request
 import os
 import shutil
 import re
+import argparse
 from bs4 import BeautifulSoup
 
 from .paper import Paper
@@ -32,17 +33,17 @@ def prepare_data(title: str, repo: Repository):
     return title, idx, filename, abspath
 
 
-def add_local_file(f: str, args, repo: Repository):
+def add_local_file(f: str, title, repo: Repository, tags):
     tmp_title = ""
-    if len(args) == 0:
+    if len(title) == 0:
         tmp_title = determine_title_via_vim()
     else:
-        tmp_title = args[0]
+        tmp_title = title
 
     title, idx, filename, abspath = prepare_data(tmp_title, repo)
     if not os.path.exists(abspath):
         shutil.copy(f, abspath)
-    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
+    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG]+tags)
     repo.add_paper(p)
     print("Added paper.")
     print("Title   :", title)
@@ -136,7 +137,7 @@ def determine_title_via_vim():
     return s
 
 
-def do_fetch_download(repo: Repository, url, title):
+def do_fetch_download(repo: Repository, url, title, tags):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
     }
@@ -163,7 +164,7 @@ def do_fetch_download(repo: Repository, url, title):
     k.buffer.write(data)
     k.close()
 
-    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG])
+    p = Paper(idx=idx, filename=filename, title=title, tags=[NEWTAG]+tags)
     p.set_url(url)
     p.set_abstract(abstract)
     repo.add_paper(p)
@@ -174,35 +175,40 @@ def do_fetch_download(repo: Repository, url, title):
     print()
 
 
-def do_fetch(args, repo: Repository):
-    title = ""
-    if len(args) >= 2:
-        title = args[1]
-    fname = None
-    if len(args) >= 1:
-        fname = args[0]
-    if os.path.exists(fname):
-        add_local_file(fname, args[1:], repo)
+def do_fetch(location, title, repo: Repository, tags):
+    if title is None:
+        title = ""
+    if os.path.exists(location):
+        add_local_file(location, title, repo, tags=tags)
     else:
-        do_fetch_download(repo, url=fname, title=title)
+        do_fetch_download(repo, url=location, title=title, tags=tags)
 
 
 def cmd_fetch(args, repo: Repository):
-    if len(args) == 0:
-        print("You need to specify an option, filename or URL.")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Fetch a paper.")
+    parser.add_argument("--urls", nargs=1, required=False, metavar="filename", help="Load papers from URLs stored in a file. (one URL per line)")
+    parser.add_argument("-t", nargs=1, required=False, type=str, help="Title of paper.")
+    parser.add_argument("--tags", nargs=1, required=False, type=str, help="Comma separated list of tags.")
+    parser.add_argument("location", type=str)
+    #parser.print_help()
+    args = parser.parse_args(args)
 
-    if args[0] == "--urls":
-        if len(args) < 2:
-            print("You need to specify a file.", file=sys.stderr)
-            sys.exit(1)
-        with open(args[1], "r") as f:
+    title = ""
+    if args.t is not None:
+        title = args.t[0]
+
+    tags = []
+    if args.tags is not None:
+        tags = [i.strip() for i in args.tags[0].split(",")]
+
+    if args.urls is not None:
+        with open(args.urls[0], "r") as f:
             for line in f:
                 s = line.strip()
                 if len(s) > 0:
                     print("fetching", s, "...", file=sys.stderr)
-                    do_fetch([s], repo)
+                    do_fetch([s], repo, tags)
     else:
-        do_fetch(args, repo)
+        do_fetch(args.location, title, repo, tags)
 
 
