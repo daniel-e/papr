@@ -189,7 +189,7 @@ def cmd_fetch(args, repo: Repository):
     parser.add_argument("--urls", nargs=1, required=False, metavar="filename", help="Load papers from URLs stored in a file. (one URL per line)")
     parser.add_argument("-t", nargs=1, required=False, type=str, help="Title of paper.")
     parser.add_argument("--tags", nargs=1, required=False, type=str, help="Comma separated list of tags.")
-    parser.add_argument("location", type=str)
+    parser.add_argument("location", nargs='+', type=str)
     #parser.print_help()
     args = parser.parse_args(args)
 
@@ -209,6 +209,10 @@ def cmd_fetch(args, repo: Repository):
                     print("fetching", s, "...", file=sys.stderr)
                     do_fetch([s], repo, tags)
     else:
-        do_fetch(args.location, title, repo, tags)
+        for location in args.location:
+            try:
+                do_fetch(location, title, repo, tags)
+            except:
+                pass
 
 

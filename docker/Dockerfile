@@ -32,6 +32,7 @@ ENV LANG=C.UTF-8
 WORKDIR /tmp/papr/
 
 USER root
+RUN chown -R dz:dz /home/dz
 RUN chown -R dz:dz .
 USER dz
 
