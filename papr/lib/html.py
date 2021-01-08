@@ -30,7 +30,7 @@ def stars(n):
     return ("★"*n) + ("☆"*(5-n))
 
 
-def export_html(repo: Repository, dstfile):
+def export_html(repo: Repository, dstfile, with_notes=False, with_summary=False):
     mydir = os.path.dirname(__file__)
     header = open(os.path.join(mydir, "../html/header.html"), "r").read()
     footer = open(os.path.join(mydir, "../html/footer.html"), "r").read()
@@ -38,16 +38,22 @@ def export_html(repo: Repository, dstfile):
         print(header, file=f)
         print('<table class="table">', file=f)
         for p in reversed(repo.list()):
-            print(
-                "<thead class='thead-dark'><tr><th>{}</th></tr></thead>"  # title
-                "<tr><td>{}&nbsp;&nbsp;&nbsp;<a href='{}'>extern link</a></td></tr>"  # url
-                "{}"  # abstract
-                "{}"  # summary
-                "{}"  # notes
-                .format(p.title(), stars(p.stars()), p.url(),
-                        ashtml(p.abstract(), "Abstract"),
-                        ashtml(p.summary(), "Summary"),
-                        ashtml(p.msg(), "Notes")
-                        ), file=f)
+            include = not(with_notes or with_summary)
+            if with_summary:
+                include = include or p.has_summary()
+            if with_notes:
+                include = include or p.has_notes()
+            if include:
+                print(
+                    "<thead class='thead-dark'><tr><th>{}</th></tr></thead>"  # title
+                    "<tr><td>{}&nbsp;&nbsp;&nbsp;<a href='{}'>extern link</a></td></tr>"  # url
+                    "{}"  # abstract
+                    "{}"  # summary
+                    "{}"  # notes
+                    .format(p.title(), stars(p.stars()), p.url(),
+                            ashtml(p.abstract(), "Abstract"),
+                            ashtml(p.summary(), "Summary"),
+                            ashtml(p.msg(), "Notes")
+                            ), file=f)
         print('</table>', file=f)
         print(footer, file=f)

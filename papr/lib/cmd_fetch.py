@@ -219,6 +219,8 @@ def cmd_fetch(args, repo: Repository):
 
 def cmd_export(args, repo: Repository):
     parser = argparse.ArgumentParser(description="Export the database into an HTML file.")
+    parser.add_argument("--with-note", action='store_true', help="Export papers only if they contain notes.")
+    parser.add_argument("--with-summary", action='store_true', help="Export papers only if they contain a summary.")
     parser.add_argument("filename", nargs=1, type=str)
     args = parser.parse_args(args)
-    export_html(repo, args.filename[0])
+    export_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary)

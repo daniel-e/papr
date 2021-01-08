@@ -93,6 +93,9 @@ class Paper:
     def has_notes(self):
         return len(self._msg) > 0
 
+    def has_summary(self):
+        return len(self.summary()) > 0
+
     def tags(self):
         """
         Returns a list of tags.
