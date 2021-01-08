@@ -208,7 +208,7 @@ def cmd_fetch(args, repo: Repository):
                 s = line.strip()
                 if len(s) > 0:
                     print("fetching", s, "...", file=sys.stderr)
-                    do_fetch([s], repo, tags)
+                    do_fetch(s, title, repo, tags)
     else:
         for location in args.location:
             try:
@@ -221,6 +221,7 @@ def cmd_export(args, repo: Repository):
     parser = argparse.ArgumentParser(description="Export the database into an HTML file.")
     parser.add_argument("--with-note", action='store_true', help="Export papers only if they contain notes.")
     parser.add_argument("--with-summary", action='store_true', help="Export papers only if they contain a summary.")
+    parser.add_argument("-n", type=int, default=-1, help="Export the n most recent papers.")
     parser.add_argument("filename", nargs=1, type=str)
     args = parser.parse_args(args)
-    export_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary)
+    export_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary, n=args.n)

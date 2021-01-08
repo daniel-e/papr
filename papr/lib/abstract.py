@@ -14,19 +14,30 @@ def parse_arxiv_abstract(data):
     return None
 
 
-def parse_openreview_abstract(data):
-    c = re.compile(r".*Abstract:</strong>\s*<span[^>]+>(.*?)</span>.*")
+def parse_with_re(data, regx):
     d = data.decode("utf-8", errors="ignore").replace("\n", " ")
-    m = c.match(d)
+    m = regx.match(d)
     if m is not None:
         return m.group(1)
     return None
 
 
+def parse_openreview_abstract(data):
+    c = re.compile(r".*Abstract:</strong>\s*<span[^>]+>(.*?)</span>.*")
+    return parse_with_re(data, c)
+
+
+def parse_neurips_abstract(data):
+    c = re.compile(r".*<h4>Abstract</h4>\s*<p>(.*?)</p>.*")
+    return parse_with_re(data, c)
+
+
 def parse_abstract(data):
     r = parse_arxiv_abstract(data)
     if r is None:
-        return parse_openreview_abstract(data)
+        r = parse_openreview_abstract(data)
+    if r is None:
+        r = parse_neurips_abstract(data)
     return r
 
 
