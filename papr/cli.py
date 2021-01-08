@@ -17,7 +17,7 @@ from .lib.config import Config
 from .lib.repository import Repository
 from .lib.help import help
 from .lib.cmd_add import cmd_add
-from .lib.cmd_fetch import cmd_fetch
+from .lib.cmd_fetch import cmd_fetch, cmd_export
 
 
 def parse_command(conf: Config, repo: Repository) -> None:
@@ -44,7 +44,9 @@ def parse_command(conf: Config, repo: Repository) -> None:
         sys.exit(0)
 
     c = sys.argv[1]
-    if c == "list":
+    if c == "export":
+        cmd_export(sys.argv[2:], repo)
+    elif c == "list":
         cmd_list(repo)
     elif c == "fetch":
         cmd_fetch(sys.argv[2:], repo)

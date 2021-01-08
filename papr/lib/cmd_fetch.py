@@ -8,6 +8,7 @@ import re
 import argparse
 from bs4 import BeautifulSoup
 
+from .html import export_html
 from .paper import Paper
 from .repository import Repository
 from .edit import editor
@@ -216,3 +217,8 @@ def cmd_fetch(args, repo: Repository):
                 pass
 
 
+def cmd_export(args, repo: Repository):
+    parser = argparse.ArgumentParser(description="Export the database into an HTML file.")
+    parser.add_argument("filename", nargs=1, type=str)
+    args = parser.parse_args(args)
+    export_html(repo, args.filename[0])
