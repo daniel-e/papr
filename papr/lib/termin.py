@@ -42,6 +42,10 @@ def read_key():
             return '['
         elif c == [27, 91, 49, 59, 50, 66]: # shift + down
             return ']'
+        elif c == [27, 91, 54, 126]: # page down
+            return '§'
+        elif c == [27, 91, 53, 126]: # page up
+            return '$'
         #print(c)
         #while True:
         #    pass

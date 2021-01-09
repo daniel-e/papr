@@ -6,6 +6,27 @@ class ScrollView:
         self._selected = selected    # selected is in [0..n_elements-1]
         self.first_element_in_view = max(0, n_elements - rows)
 
+    def pagedown(self):
+
+        if self.first_element_in_view + self._rows < self.n_elemens:
+            self.first_element_in_view += self._rows
+            self._selected += self._rows
+        else:
+            self._selected = self.n_elemens - 1
+        pass
+
+    def pageup(self):
+        if self.first_element_in_view == 0:
+            self._selected = 0
+        elif self.first_element_in_view - self._rows > 0:
+            self.first_element_in_view -= self._rows
+            self._selected -= self._rows
+        else:
+            n = self.first_element_in_view
+            self.first_element_in_view = 0
+            self._selected -= n
+        pass
+
     def up(self, n=1):
         while n > 0:
             if self.first_element_in_view == self._selected:

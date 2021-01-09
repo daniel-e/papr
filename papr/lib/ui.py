@@ -349,6 +349,10 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                     s.tag_scrollview.up(5)
                 elif k == ']':
                     s.tag_scrollview.down(5)
+                elif k == '§':
+                    s.tag_scrollview.pagedown()
+                elif k == '$':
+                    s.tag_scrollview.pageup()
                 elif ord(k) == 10:
                     s.selected_tag = s.tags[s.tag_scrollview.selected()][0]
                     papers = [p for p in r if s.selected_tag in p.tags()]
@@ -384,6 +388,10 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 v.up(5)
             elif k == ']':
                 v.down(5)
+            elif k == '§':
+                v.pagedown()
+            elif k == '$':
+                v.pageup()
             elif k == 'n':
                 notes_of_paper(repo, papers[v.selected()])
             elif k == 'U':
