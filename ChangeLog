@@ -1,6 +1,7 @@
 0.0.19 (in progress)
 - TODO: merge multiple lines in title to one when fetching a paper
 - TODO: run local webserver
+- feature: use shift + keyup/keydown to jump 5 entries up/down
 - feature: specify more than one url for fetching
 - feature: specify tags when fetching a paper
 - feature: export to HTML from ui (markdown is converted to HTML)

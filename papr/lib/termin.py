@@ -38,3 +38,11 @@ def read_key():
             return '#'
         elif c == [27, 91, 66]:
             return '+'
+        elif c == [27, 91, 49, 59, 50, 65]: # shift + up
+            return '['
+        elif c == [27, 91, 49, 59, 50, 66]: # shift + down
+            return ']'
+        #print(c)
+        #while True:
+        #    pass
+
