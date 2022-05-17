@@ -8,7 +8,7 @@ import re
 import argparse
 from bs4 import BeautifulSoup
 
-from .html import export_html
+from .html import export_repository_html
 from .paper import Paper
 from .repository import Repository
 from .edit import editor
@@ -224,4 +224,4 @@ def cmd_export(args, repo: Repository):
     parser.add_argument("-n", type=int, default=-1, help="Export the n most recent papers.")
     parser.add_argument("filename", nargs=1, type=str)
     args = parser.parse_args(args)
-    export_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary, n=args.n)
+    export_repository_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary, n=args.n)

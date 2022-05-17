@@ -1,5 +1,6 @@
 import tempfile
 import os
+import unittest
 from collections import Counter
 from subprocess import call
 
@@ -8,11 +9,34 @@ import termcolor
 from .paper import Paper
 from .repository import Repository
 
+MARKDOWN_HELP = """┌───────────────────────────────────────────────────┐
+│ Markdown Help (will be removed automatically)     │
+├───────────────────────────────────────────────────┤
+│ ### This is a title.                              │
+│                                                   │
+│ - This is a                                       │
+│ - list                                            │
+│   This line belongs to the previous point.        │
+│                                                   │
+│ This is **bold** and *italic* and `inline code`.  │
+│                                                   │
+│ A horizontal line:                                │
+│ - - -                                             │
+│                                                   │
+│ This is a [link](https://).                       │
+│                                                   │
+│ You can create tables:                            │
+│                                                   │
+│ Column 1 | Column 2                               │
+│ -------- | ---------                              │
+│ Foo      | Bar                                    │
+└───────────────────────────────────────────────────┘"""
 
-def create_tmp_file(msg):
-    _, pth = tempfile.mkstemp(".tmp.md")
+
+def create_tmp_file(content="", ext="tmp.md"):
+    _, pth = tempfile.mkstemp("." + ext)
     f = open(pth, "wt")
-    f.write(msg)
+    f.write(content)
     f.close()
     return pth
 
@@ -39,9 +63,24 @@ def less(msg, args=[]):
     call(cmd)
 
 
+def insert_markdown_help(msg):
+    return msg + "\n" + MARKDOWN_HELP
+
+
+def remove_markdown_help(msg):
+    for i in ["\n", ""]:
+        s = i + MARKDOWN_HELP
+        pos = msg.find(s)
+        if pos >= 0:
+            msg = msg[:pos] + msg[pos + len(s):]
+    return msg
+
+
 def notes_of_paper(repo: Repository, p: Paper):
     msg = p.msg()
+    msg = insert_markdown_help(msg)
     msg = editor(msg, 1).strip()
+    msg = remove_markdown_help(msg)
     p.update_msg(msg)
     repo.update_paper(p)
 
@@ -133,3 +172,28 @@ def show_summaries(repo: Repository, width):
             msg += wrap_lines(p.summary(), width) + "\n\n"
     msg += termcolor.colored("\nPress q to quit.", "white", "on_red", attrs=["bold"])
     less(msg, ["-r"])
+
+
+class TestEdit(unittest.TestCase):
+    def test_insert_and_remove_markdown(self):
+        msg = ""
+        msg = insert_markdown_help(msg)
+        self.assertEqual(msg, "\n" + MARKDOWN_HELP)
+        msg = remove_markdown_help(msg)
+        self.assertEqual(msg, "")
+
+        msg = "A"
+        msg = insert_markdown_help(msg)
+        self.assertEqual(msg, "A\n" + MARKDOWN_HELP)
+        msg = remove_markdown_help(msg)
+        self.assertEqual(msg, "A")
+
+        msg = "A\n"
+        msg = insert_markdown_help(msg)
+        self.assertEqual(msg, "A\n\n" + MARKDOWN_HELP)
+        msg = remove_markdown_help(msg)
+        self.assertEqual(msg, "A\n")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -29,7 +29,9 @@ class Config:
             "cfg_version": "0.0.2",
             "default_repo": "null",
             "viewer": "/usr/bin/evince",
-            "last_version_started": self.papr_version()
+            "last_version_started": self.papr_version(),
+            "browser": "firefox",
+            "browser_params": []
         }
         self._write_config()
 
@@ -74,3 +76,17 @@ class Config:
             self._write_config()
             return False
         return True
+
+    def get_browser(self):
+        return self.get("browser", "firefox")
+
+    def get_browser_params(self):
+        return self.get("browser_params", [])
+
+    def set_browser(self, browser):
+        self.config["browser"] = browser
+        self._write_config()
+
+    def set_browser_params(self, params):
+        self.config["browser_params"] = params
+        self._write_config()

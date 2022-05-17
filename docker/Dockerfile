@@ -5,6 +5,7 @@ RUN apt-get update
 RUN apt-get -y install apt-utils aptitude git curl net-tools iputils-ping tcpdump
 RUN apt-get -y install python3 python3-pip virtualenv
 RUN apt-get -y install jq evince vim
+RUN apt-get -y install firefox
 
 RUN pip3 install bs4 termcolor markdown
 

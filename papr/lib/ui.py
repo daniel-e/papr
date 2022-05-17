@@ -9,10 +9,10 @@ from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down, write_xy
 from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, \
     summary_of_paper, show_summaries
-from .html import export_html
+from .html import export_repository_html
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
-from .tools import filter_list, show_pdf, filter_list_re, highlight_query
+from .tools import filter_list, show_pdf, filter_list_re, highlight_query, show_in_browser
 from .cmd_fetch import NEWTAG
 from .ui_scrollview import ScrollView
 from .repository import Repository
@@ -169,7 +169,8 @@ def redraw(state, papers, v, conf):
             " c             : Hide/show paper.",
             " .             : Show hidden/visible papers.",
             " space         : Open a context menu.",
-            " m             : List all papers with a summary."
+            " m             : List all papers with a summary.",
+            " b             : Open web browser for details."
         ]
         n = min(len(h), n_rows-2-1)   # number of lines in the box
         offset = state.in_help_offset # index of element in h which should be the first line in the box
@@ -442,6 +443,8 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 show_summaries(repo, cols())
             elif k == 'x':
                 file_dialog(repo, conf)
+            elif k == 'b':
+                show_in_browser(repo, papers[v.selected()], conf.get_browser(), conf.get_browser_params())
 
 
 # TODO duplicate code
@@ -459,6 +462,7 @@ def show_dialog(x, y, width, header="", content=None):
         write(colored("│", "white", "on_blue"))
         y += 1
     write_xy(x, y, colored("└" + ("─" * width) + "┘", "white", "on_blue"))
+
 
 # TODO make it reusable
 def file_dialog(repo: Repository, conf: Config):
@@ -478,7 +482,7 @@ def file_dialog(repo: Repository, conf: Config):
             break
         elif ord(key) == 10:
             conf.set_export_path(s)
-            export_html(repo, s)
+            export_repository_html(repo, s)
             show_dialog(x, y, width, header=["Repository exported to:", s[:width]])
             read_key()
             break

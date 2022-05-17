@@ -1,7 +1,12 @@
+import os
 import re
+import time
+from pathlib import Path
 from subprocess import Popen, DEVNULL
 
 from .paper import Paper
+from .edit import create_tmp_file
+from .html import export_papers_html
 
 
 def re_exists_in(p: Paper, q):
@@ -62,4 +67,12 @@ def show_pdf(p: Paper, repo_path, path_viewer):
         pass
 
 
+def show_in_browser(repo, p: Paper, browser, browser_params=[]):
+    tmp = create_tmp_file(ext="html")
+    export_papers_html(repo, [p], tmp, with_pdf_link=True)
+    try:
+        # TODO configure browser
+        Popen([browser] + browser_params + ["file://" + tmp], stderr=DEVNULL, stdout=DEVNULL)
+    except:
+        pass
 
