@@ -1,3 +1,6 @@
+# TODO: update version in config? (config.py, ui.py, setup.py, Makefile) + Changelog on start
+
+
 Use Case: As a user I want to play around with papr
 ===================================================
 

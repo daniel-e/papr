@@ -51,5 +51,8 @@ def help(exitcode=0):
     print("             Add a file which is located in the repository directory but which")
     print("             is not tracked yet. The filename does not change and will be used")
     print("             as the title without the extension.")
+    print("Export")
+    print("  html       Export as HTML.")
+    print("  export     Export database with summaries and notes as YML.")
     print()
     sys.exit(exitcode)

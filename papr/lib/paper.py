@@ -23,7 +23,7 @@ class Paper:
         data = json.loads(jsonstr)
         p._filename = data["filename"]
         p._title = data["title"]
-        p._msg = data.get("msg", "")
+        p._msg = data.get("msg", "")  # notes
         p._summary = data.get("summary", "")
         p._tags = [i for i in data.get("tags", "").split(",") if len(i) > 0]
         p._stars = int(data.get("stars", "0"))

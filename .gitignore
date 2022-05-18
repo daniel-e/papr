@@ -5,3 +5,4 @@ papr.egg-info/
 venv
 papr/lib/__pycache__/
 *.swp
+.vscode

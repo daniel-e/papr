@@ -1,92 +1,98 @@
 import os
-import sys
-from collections import Counter
 
-from .db import Db
+import yaml
+
 from .config import Config
 from .paper import Paper
-
-REPO_META = ".paper"
+from .repository_v1 import RepositoryV1, REPO_META
+from .repository_v2 import RepositoryV2, DATA_PATH, META_FILE
 
 
 class Repository:
     def __init__(self, config: Config):
-        self.repo_pdf_path = None
-        self.repo_meta_path = None
-        self.local = None
-        self.db = None
-        self.config = config
-        self._init_paths()
-        if self.is_valid():
-            self.db = Db(self.repo_meta_path)
-            if not self.db.check_version():
-                print("Found incompatible version.")
-                sys.exit(1)
+        self._repo_pdf_path = None
+        self._repo_meta_path = None
+        self._local = None
+        self._proxy = None
+        self._config = config
+        self._determine_paths()
 
+        # TODO: eventuell muss init_path oder init hier implementiert werden, denn wir müssen hier
+        # berücksichtigen, ob wir uns in einem repo befinden oder außerhalb (und deshalb das default_repo verwenden)
+
+        if self._is_v1():
+            self._proxy = RepositoryV1(config, self._repo_meta_path)
+        elif self._is_v2():
+            self._proxy = RepositoryV2(config, self._repo_pdf_path)
+
+    def _is_v1(self):
+        return not os.path.exists(self._repo_pdf_path + "/" + REPO_META + "/"  + META_FILE)
+
+    def _is_v2(self):
+        p = self._repo_pdf_path + "/" + REPO_META + "/" + META_FILE
+        if os.path.exists(p):
+            with open(p, "rt") as f:
+                y = yaml.safe_load(f)
+                return int(y.get("repo_version", 0)) == 2
+        return False
+
+    def is_local_repository(self):
+        return self._local
+
+    def is_valid(self):
+        """
+        :return: True if this object represents a valid repository.
+        """
+        return self._repo_meta_path is not None and self._repo_pdf_path is not None
+
+    def pdf_path(self):
+        return self._repo_pdf_path
+
+    def _determine_paths(self):
+        # First check if the current working directory is a repository.
+        self._repo_pdf_path = os.getcwd()  # $PWD
+        self._repo_meta_path = self._repo_pdf_path + "/" + REPO_META  # $PWD/.paper/
+        self._local = True
+
+        if not os.path.exists(self._repo_meta_path):
+            # If it does not exist read the location of the repository from
+            # the configuration.
+            self._repo_pdf_path = self._config.get("default_repo")
+            self._repo_meta_path = self._repo_pdf_path + "/" + REPO_META
+            self._local = False
+
+        if not os.path.exists(self._repo_meta_path):
+            self._repo_pdf_path = None
+            self._repo_meta_path = None
+            self._local = None
+
+    # Called by the user via "papr init".
     def init(self):
         """
         Creates directories, databases and updates configuration but does not change
         this isntance into a valid repository.
         :return:
         """
-        # Update configuration: set default repository.
-        self.config.set_default_repo(os.getcwd())
-        # Create database.
-        os.mkdir(os.getcwd() + "/" + REPO_META)
-        self.db = Db.create(os.getcwd() + "/" + REPO_META)
-
-    def is_local_repository(self):
-        return self.local
-
-    def is_valid(self):
-        """
-        :return: True if this object represents a valid repository.
-        """
-        return self.repo_meta_path is not None and self.repo_pdf_path is not None
-
-    def pdf_path(self):
-        return self.repo_pdf_path
-
-    def _init_paths(self):
-        # First check if the current working directory is a repository.
-        self.repo_pdf_path = os.getcwd()  # $PWD
-        self.repo_meta_path = self.repo_pdf_path + "/" + REPO_META  # $PWD/.paper/
-        self.local = True
-
-        if not os.path.exists(self.repo_meta_path):
-            # If it does not exist read the location of the repository from
-            # the configuration.
-            self.repo_pdf_path = self.config.get("default_repo")
-            self.repo_meta_path = self.repo_pdf_path + "/" + REPO_META
-            self.local = False
-
-        if not os.path.exists(self.repo_meta_path):
-            self.repo_pdf_path = None
-            self.repo_meta_path = None
-            self.local = None
+        self._proxy.init()
 
     def list(self):
         """
         Returns a list of all papers.
         :return:
         """
-        return self.db.list()
+        return self._proxy.list()
 
     def next_id(self):
-        return self.db.next_id()
+        return self._proxy.next_id()
 
     def add_paper(self, p: Paper):
-        return self.db.add_paper(p)
+        return self._proxy.add_paper(p)
 
     def get_paper(self, idx):
-        return self.db.get(idx)
+        return self._proxy.get_paper(idx)
 
     def update_paper(self, p):
-        self.db.update_paper(p)
+        self._proxy.update_paper(p)
 
     def all_tags(self, sorted_by_usage=True):
-        # Get a list of list of tags.
-        l = [paper.tags() for paper in self.list()]
-        # Flatten the list and count the occurrences of each tag.
-        c = Counter([j for i in l for j in i])
-        return c.most_common()
+        return self._proxy.all_tags(sorted_by_usage=sorted_by_usage)

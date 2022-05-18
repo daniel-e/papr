@@ -6,6 +6,8 @@ import os
 import shutil
 import re
 import argparse
+
+import yaml
 from bs4 import BeautifulSoup
 
 from .html import export_repository_html
@@ -19,7 +21,15 @@ NEWTAG="unread"
 
 
 def title_as_filename(s):
-    return re.sub(r'_+', '_', re.sub(r'[^a-z0-9]', "_", re.sub(r'\s+', "_", s.lower())))
+    # lower case
+    s = re.sub(r'\s+', "_", s.lower())
+    # remove everything except a-z0-9
+    s = re.sub(r'[^a-z0-9]', "_", s)
+    # remove double _
+    s = re.sub(r'_+', '_', s)
+    # remove trailing _
+    s = re.sub(r'_+$', '', s)
+    return s
 
 
 def normalize_title(s):
@@ -217,7 +227,7 @@ def cmd_fetch(args, repo: Repository):
                 pass
 
 
-def cmd_export(args, repo: Repository):
+def cmd_export_html(args, repo: Repository):
     parser = argparse.ArgumentParser(description="Export the database into an HTML file.")
     parser.add_argument("--with-note", action='store_true', help="Export papers only if they contain notes.")
     parser.add_argument("--with-summary", action='store_true', help="Export papers only if they contain a summary.")
@@ -225,3 +235,27 @@ def cmd_export(args, repo: Repository):
     parser.add_argument("filename", nargs=1, type=str)
     args = parser.parse_args(args)
     export_repository_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary, n=args.n)
+
+
+def cmd_export_yml(args, repo: Repository):
+    parser = argparse.ArgumentParser(description="Export the database into a YML file.")
+    parser.add_argument("filename", nargs=1, type=str, description="YML file.")
+    args = parser.parse_args(args)
+
+    path = args.filename[0]
+    all_meta = []
+    for paper in repo.list():
+        meta = {
+            "title": paper.title(),
+            "stars": paper.stars(),
+            "idx": paper.idx(),
+            "pdf": paper.filename(),
+            "tags": ",".join(paper.tags()),
+            "abstract": paper.abstract(),
+            "url": paper.url(),
+            "summary": paper.summary(),
+            "notes": paper.msg()
+        }
+        all_meta.append(meta)
+    with open(path, "wt") as f:
+        yaml.dump(all_meta, f)
