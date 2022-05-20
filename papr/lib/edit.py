@@ -1,36 +1,11 @@
 import tempfile
 import os
 import unittest
-from collections import Counter
 from subprocess import call
 
 import termcolor
 
 from .paper import Paper
-from .repository import Repository
-
-MARKDOWN_HELP = """┌───────────────────────────────────────────────────┐
-│ Markdown Help (will be removed automatically)     │
-├───────────────────────────────────────────────────┤
-│ ### This is a title.                              │
-│                                                   │
-│ - This is a                                       │
-│ - list                                            │
-│   This line belongs to the previous point.        │
-│                                                   │
-│ This is **bold** and *italic* and `inline code`.  │
-│                                                   │
-│ A horizontal line:                                │
-│ - - -                                             │
-│                                                   │
-│ This is a [link](https://).                       │
-│                                                   │
-│ You can create tables:                            │
-│                                                   │
-│ Column 1 | Column 2                               │
-│ -------- | ---------                              │
-│ Foo      | Bar                                    │
-└───────────────────────────────────────────────────┘"""
 
 
 def create_tmp_file(content="", ext="tmp.md"):
@@ -63,36 +38,19 @@ def less(msg, args=[]):
     call(cmd)
 
 
-def insert_markdown_help(msg):
-    return msg + "\n" + MARKDOWN_HELP
+def edit_file(filename):
+    call([os.getenv('EDITOR', 'vim'), filename])
 
 
-def remove_markdown_help(msg):
-    for i in ["\n", ""]:
-        s = i + MARKDOWN_HELP
-        pos = msg.find(s)
-        if pos >= 0:
-            msg = msg[:pos] + msg[pos + len(s):]
-    return msg
+def edit_notes_of_paper(repo, p: Paper):
+    edit_file(repo.notes_filename(p))
 
 
-def notes_of_paper(repo: Repository, p: Paper):
-    msg = p.msg()
-    msg = insert_markdown_help(msg)
-    msg = editor(msg, 1).strip()
-    msg = remove_markdown_help(msg)
-    p.update_msg(msg)
-    repo.update_paper(p)
+def edit_summary_of_paper(repo, p: Paper):
+    edit_file(repo.summary_filename(p))
 
 
-def summary_of_paper(repo: Repository, p: Paper):
-    summary = p.summary()
-    summary = editor(summary, 1).strip()
-    p.update_summary(summary)
-    repo.update_paper(p)
-
-
-def tags_of_paper(repo: Repository, p: Paper):
+def tags_of_paper(repo, p: Paper):
     msg = "COMMA SEPARATED LIST OF WORDS\n" + ",".join(p.tags())
     msg = editor(msg, 2)
     pos = msg.find("\n")
@@ -128,7 +86,7 @@ def bar(n, maxn, maxlen=30):
     return "█" * (maxlen * n // maxn)
 
 
-def list_of_tags(repo: Repository):
+def list_of_tags(repo):
     c = repo.all_tags()
     maxtaglen = max([len(tag) for tag, _ in c])
     maxn = max([n for _, n in c])
@@ -139,7 +97,7 @@ def list_of_tags(repo: Repository):
     less(msg)
 
 
-def edit_title(p: Paper, r: Repository):
+def edit_title(p: Paper, r):
     msg = editor(p.title()).strip()
     if msg != p.title():
         p.set_title(msg)
@@ -159,7 +117,7 @@ def wrap_lines(s, width):
     return "\n".join(lines)
 
 
-def show_summaries(repo: Repository, width):
+def show_summaries(repo, width):
     papers = repo.list()
     msg = ""
     width -= 1  # less has trouble to correctly show the content when not doing this

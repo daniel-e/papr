@@ -7,8 +7,8 @@ import termcolor
 from .latest_version import latest_version
 from .config import Config
 from .console import cursor_on, cursor_off, cursor_top_left, cursor_up, cursor_down, write_xy
-from .edit import notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, \
-    summary_of_paper, show_summaries
+from .edit import edit_notes_of_paper, tags_of_paper, abstract_of_paper, details_of_paper, list_of_tags, edit_title, \
+    edit_summary_of_paper, show_summaries
 from .html import export_repository_html
 from .termin import read_key
 from .termout import rows, empty_line, print_paper, cols, write
@@ -254,8 +254,8 @@ def select_item(menu):
             selection = min(len(menu) - 1, selection + 1)
 
 
-def ui_main_or_search_loop(r, repo: Repository, conf: Config):
-    n_papers = len(r)
+def ui_main_or_search_loop(papers_in, repo: Repository, conf: Config):
+    n_papers = len(papers_in)
     n_view_rows = rows() - 3 - 1 - 1
     # -3 = 3 rows for header
     # -1 = 1 row for search line
@@ -263,7 +263,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
     v = ScrollView(n_elements=n_papers, rows=n_view_rows, selected=n_papers-1)
 
     s = State()
-    papers = r[:]
+    papers = papers_in[:]
 
     while True:
         if s.show_hidden:
@@ -328,7 +328,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
             else:
                 s.search += k
 
-            papers = f(r, s.search)
+            papers = f(papers_in, s.search)
             # highlight search
             if s.in_search:
                 for p in papers:
@@ -356,7 +356,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                     s.tag_scrollview.pageup()
                 elif ord(k) == 10:
                     s.selected_tag = s.tags[s.tag_scrollview.selected()][0]
-                    papers = [p for p in r if s.selected_tag in p.tags()]
+                    papers = [p for p in papers_in if s.selected_tag in p.tags()]
                     v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers) - 1)
                     s.in_filter = False
             else:
@@ -394,9 +394,9 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
             elif k == '$':
                 v.pageup()
             elif k == 'n':
-                notes_of_paper(repo, papers[v.selected()])
+                edit_notes_of_paper(repo, papers[v.selected()])
             elif k == 'U':
-                summary_of_paper(repo, papers[v.selected()])
+                edit_summary_of_paper(repo, papers[v.selected()])
             elif k == 't':
                 tags_of_paper(repo, papers[v.selected()])
             elif ord(k) == 10:
@@ -423,7 +423,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 s.select_tag = False
             elif k == 'F':
                 s.selected_tag = ""
-                papers = r[:]
+                papers = papers_in[:]
                 v = ScrollView(n_elements=len(papers), rows=n_view_rows, selected=len(papers) - 1)
                 # TODO: consider search
             elif k == 'h':
@@ -436,7 +436,7 @@ def ui_main_or_search_loop(r, repo: Repository, conf: Config):
                 repo.update_paper(p)
             elif k == '.':
                 s.show_hidden = not s.show_hidden
-                papers = r[:]
+                papers = papers_in[:]
             elif k == ' ':
                 s.show_menu = True
             elif k == 'm':
@@ -493,18 +493,18 @@ def file_dialog(repo: Repository, conf: Config):
 
 
 def run_ui(args, repo: Repository, conf: Config):
-    r = repo.list()
-    if len(r) == 0:
+    papers = repo.list()
+    if len(papers) == 0:
         print("Repository is empty.")
         sys.exit(0)
 
     if len(args) > 0:
-        r = filter_list(r, args[0])
+        papers = filter_list(papers, args[0])
 
     # Retrieve latest version of papr from GitHub.
     latest_version(conf.set_latest_version)
 
-    ui_main_or_search_loop(r, repo, conf)
+    ui_main_or_search_loop(papers, repo, conf)
     cursor_on()
     print()
 

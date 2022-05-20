@@ -1,7 +1,8 @@
+from .repository import Repository
 from .tools import show_pdf
 
 
-def cmd_last(args, repo):
+def cmd_last(args, repo: Repository):
     p = -1
     if len(args) > 0:
         p = -int(args[0])

@@ -1,7 +1,5 @@
-import json
-import pathlib
 import sqlite3
-from .paper import Paper
+from .v1_paper import Paper
 
 SQLITE_FILE = "paper.db"
 MAX_SUPPORT_DB_VERSION = 2
@@ -9,10 +7,8 @@ MAX_SUPPORT_DB_VERSION = 2
 
 class Db:
     @staticmethod
-    def create(path: pathlib.Path):
-        p = path.joinpath(SQLITE_FILE)
-        conn = sqlite3.connect(p)
-        # TODO: handle error if connect fails
+    def create(path):
+        conn = sqlite3.connect(path + "/" + SQLITE_FILE)
         c = conn.cursor()
         # SQL queries for version 1.
         c.execute("CREATE TABLE papers (idx integer primary key, json text)")
@@ -30,6 +26,10 @@ class Db:
         data = (2,)
         c.execute("INSERT INTO config (version) values (?)", data)
         conn.commit()
+
+    @staticmethod
+    def version_3_commands(conn, c):
+        pass
 
     @staticmethod
     def upgrade_from_1(conn, c):
@@ -51,14 +51,9 @@ class Db:
             # Upgrade database to version 2.
             Db.upgrade_from_1(conn, c)
         # At this point we have at least version 2.
-#        while True:
-#            if Db.get_version(c) == 2:
-#                Db.upgrade_from_2(conn, c)
-#            else:
-#                break
         conn.close()
 
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, path):
         self.path = path
 
     @staticmethod
@@ -74,61 +69,47 @@ class Db:
         return v <= MAX_SUPPORT_DB_VERSION
 
     def filename(self):
-        return self.path.joinpath(SQLITE_FILE)
+        return self.path + "/" + SQLITE_FILE
 
     def list(self):
         conn = self.get_connection()
-        # TODO: handle error if connect fails
         c = conn.cursor()
-# TODO
-        r = [Paper.from_json(idx, json_data) for idx, json_data in sorted([i for i in c.execute("SELECT idx, json FROM papers")])]
+        r = [Paper.from_json(j[0], j[1]) for j in sorted([i for i in c.execute("SELECT idx, json FROM papers")])]
         conn.close()
-        # TODO: handle db errors
         return r
 
     def next_id(self):
         conn = self.get_connection()
-        # TODO: handle error if connect fails
         c = conn.cursor()
         r = [i[0] for i in c.execute("SELECT idx FROM papers")]
         conn.close()
-        # TODO: handle db errors
         if len(r) == 0:
             return 1
         return max(r) + 1
 
     def add_paper(self, p: Paper):
         conn = self.get_connection()
-        # TODO: handle error if connect fails
         c = conn.cursor()
-# TODO
         data = (p.idx(), p.as_json())
         c.execute("INSERT INTO papers (idx, json) VALUES (?, ?)", data)
         conn.commit()
         conn.close()
-        # TODO: handle db errors
 
     def get(self, idx):
         conn = self.get_connection()
-        # TODO: handle error if connect fails
         c = conn.cursor()
         r = c.execute("SELECT json FROM papers WHERE idx=" + str(idx))
         r = r.fetchone()
         conn.close()
-        # TODO: handle db errors
         if not r:
             return None
-# TODO
         return Paper.from_json(idx, r[0])
 
     def update_paper(self, p: Paper):
         conn = self.get_connection()
-        # TODO: handle error if connect fails
         c = conn.cursor()
-# TODO
         data = (p.as_json(), p.idx())
         c.execute("UPDATE papers SET json = ? WHERE idx = ?", data)
         conn.commit()
         conn.close()
-        # TODO: handle db errors
 

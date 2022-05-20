@@ -19,25 +19,10 @@ from .lib.repository import Repository
 from .lib.help import help
 from .lib.cmd_add import cmd_add
 from .lib.cmd_fetch import cmd_fetch, cmd_export_html, cmd_export_yml
-from .lib.storage_migration import do_migration
-
-
-def migrate_if_needed(conf: Config, repo: Repository) -> None:
-    vmaj, vmin, vmic = [int(i) for i in conf.papr_version().split(".")]
-    if vmaj == 0 and vmin == 0 and vmic <= 18:
-        print("Migrating to new storage structure. This might take some seconds...")
-        print("PLEASE DO NOT INTERRUPT THIS PROCESS")
-        do_migration(conf, repo)
-        print("DONE")
-        conf = Config()
-        repo = Repository(conf)  # read from new repository structure
-    return conf, repo
+from .lib.migration import do_migration, assert_migration_not_needed
 
 
 def parse_command(conf: Config, repo: Repository) -> None:
-    conf, repo = migrate_if_needed(conf, repo)
-    time.sleep(1)
-
     # TODO use argparse
     if len(sys.argv) > 1:
         c = sys.argv[1]
@@ -54,6 +39,14 @@ def parse_command(conf: Config, repo: Repository) -> None:
     if not repo.is_valid():
         print("No repository.")
         sys.exit(1)
+
+    if len(sys.argv) > 1:
+        c = sys.argv[1]
+        if c == "migrate":
+            do_migration(conf)
+            return
+
+    assert_migration_not_needed(conf)
 
     # no arguments given -> show UI
     if len(sys.argv) < 2:

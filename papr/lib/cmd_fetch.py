@@ -12,7 +12,6 @@ from bs4 import BeautifulSoup
 
 from .html import export_repository_html
 from .paper import Paper
-from .repository import Repository
 from .edit import editor
 from .abstract import parse_abstract
 
@@ -36,7 +35,7 @@ def normalize_title(s):
     return re.sub(r'\s+', " ", s.replace("\n", " "))
 
 
-def prepare_data(title: str, repo: Repository):
+def prepare_data(title: str, repo):
     title = normalize_title(title)
     idx = repo.next_id()
     filename = "{:05d}_{}.pdf".format(idx, title_as_filename(title))
@@ -44,7 +43,7 @@ def prepare_data(title: str, repo: Repository):
     return title, idx, filename, abspath
 
 
-def add_local_file(f: str, title, repo: Repository, tags):
+def add_local_file(f: str, title, repo, tags):
     tmp_title = ""
     if len(title) == 0:
         tmp_title = determine_title_via_vim()
@@ -148,7 +147,7 @@ def determine_title_via_vim():
     return s
 
 
-def do_fetch_download(repo: Repository, url, title, tags):
+def do_fetch_download(repo, url, title, tags):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36"
     }
@@ -186,7 +185,7 @@ def do_fetch_download(repo: Repository, url, title, tags):
     print()
 
 
-def do_fetch(location, title, repo: Repository, tags):
+def do_fetch(location, title, repo, tags):
     if title is None:
         title = ""
     if os.path.exists(location):
@@ -195,7 +194,7 @@ def do_fetch(location, title, repo: Repository, tags):
         do_fetch_download(repo, url=location, title=title, tags=tags)
 
 
-def cmd_fetch(args, repo: Repository):
+def cmd_fetch(args, repo):
     parser = argparse.ArgumentParser(description="Fetch a paper.")
     parser.add_argument("--urls", nargs=1, required=False, metavar="filename", help="Load papers from URLs stored in a file. (one URL per line)")
     parser.add_argument("-t", nargs=1, required=False, type=str, help="Title of paper.")
@@ -227,7 +226,7 @@ def cmd_fetch(args, repo: Repository):
                 pass
 
 
-def cmd_export_html(args, repo: Repository):
+def cmd_export_html(args, repo):
     parser = argparse.ArgumentParser(description="Export the database into an HTML file.")
     parser.add_argument("--with-note", action='store_true', help="Export papers only if they contain notes.")
     parser.add_argument("--with-summary", action='store_true', help="Export papers only if they contain a summary.")
@@ -237,10 +236,12 @@ def cmd_export_html(args, repo: Repository):
     export_repository_html(repo, args.filename[0], with_notes=args.with_note, with_summary=args.with_summary, n=args.n)
 
 
-def cmd_export_yml(args, repo: Repository):
+def cmd_export_yml(args, repo):
     parser = argparse.ArgumentParser(description="Export the database into a YML file.")
     parser.add_argument("filename", nargs=1, type=str, description="YML file.")
     args = parser.parse_args(args)
+
+    # TODO export summary (paper.summary()) and notes (paper.msg()) as well
 
     path = args.filename[0]
     all_meta = []
@@ -253,8 +254,6 @@ def cmd_export_yml(args, repo: Repository):
             "tags": ",".join(paper.tags()),
             "abstract": paper.abstract(),
             "url": paper.url(),
-            "summary": paper.summary(),
-            "notes": paper.msg()
         }
         all_meta.append(meta)
     with open(path, "wt") as f:

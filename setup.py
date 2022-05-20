@@ -16,7 +16,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/daniel-e/papr",
-    packages=['papr', 'papr/lib'],
+    packages=['papr', 'papr/lib', 'papr/lib/migration'],
     package_data={'papr': ['html/*']},
     #include_package_data=True,
     classifiers=[

@@ -1,4 +1,65 @@
-# TODO: update version in config? (config.py, ui.py, setup.py, Makefile) + Changelog on start
+# Test migration of storage structure from 0.0.18 to 0.0.19 
+
+From version 0.0.18 to 0.0.19 the storage structure has changed. Instead of storing the
+summary and notes in the sqlite3 database, the data is stored in notes.md and summary.md
+in the new directory `data` in a repository.
+
+Steps to test the migration:
+
+* install papr 0.0.18
+* create a repository with `papr init`
+* download some papers
+* create notes and summaries
+* install papr 0.0.19
+* when starting the new version you should see a message that you have to upgrade
+* run `papr migrate`
+* run papr again - now it should start without the message
+* verify that notes and summaries are still available
+* verify the files on disc
+  * repo/.paper/meta.yml should exist with version 2
+  * repo/data/p... should exist with notes and summaries
+* edit notes and summaries
+* verify that changes are persisted
+
+# Publish a new version to PyPI
+
+- [ ] Set a new version in setup.py
+- [ ] Set a new version in config.py::_PAPR_VERSION
+- [ ] Set a new version in Makefile (section reinstall)
+- [ ] Update ChangeLog
+- [ ] Update new feature description in ui.py::show_new_features
+- [ ] commit everything into branch + push
+- [ ] merge branch into master
+  - git checkout master
+  - git merge v0.0.??
+  - git push (to master)
+- [ ] create screenshot
+- [ ] make clean
+- [ ] make build
+- [ ] python3 -m pip install --user --upgrade twine
+- [ ] test.pypi.org
+  - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+  - enter username and password for test.pypi.org
+  - check https://test.pypi.org/project/papr/
+- [ ] live
+  - twine upload dist/*
+  - check that you can install it
+    make runimage
+    python3 -m pip uninstall papr
+    python3 -m pip install --no-cache-dir papr
+- [ ] give it a tag, e.g. "v0.0.13" (git tag -a v0.0.13 -m comment)
+- [ ] push it (git push --tags)
+- [ ] test: pip3 install papr
+- [ ] announce
+  - use monospace font for "pip3 install papr" from https://yaytext.com/monospace/
+    𝚙𝚒𝚙3 𝚒𝚗𝚜𝚝𝚊𝚕𝚕 𝚙𝚊𝚙𝚛 <- this should be UTF-8 chars monospaced
+- [ ] branch for next version: git checkout -b v0.0.18
+
+Example:
+Released version 0.0.18 of papr - a simple command line tool to manage scientific papers. New: create summaries, context menu, hide papers, change title, new version notification. [pip3 install papr] [screenshot] https://github.com/daniel-e/papr
+
+
+
 
 
 Use Case: As a user I want to play around with papr
@@ -28,43 +89,6 @@ Testing
     cd /host
     make reinstall
 
-
-Use Case: As a developer I want to publish a new version to PyPI
-================================================================
-
-- Set a new version in setup.py.
-- Set a new version in config.py::_PAPR_VERSION
-- Set a new version in Makefile (section reinstall)
-- Update new feature description in ui.py::show_new_features
-- commit everything into branch + push
-- merge branch into master
-  - git checkout master
-  - git merge v0.0.??
-  - git push (to master)
-- create screenshot
-- make clean
-- make build
-- python3 -m pip install --user --upgrade twine
-- test.pypi.org
-  - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-  - enter username and password for test.pypi.org
-  - check https://test.pypi.org/project/papr/
-- live
-  - twine upload dist/*
-  - check that you can install it
-    make runimage
-    python3 -m pip uninstall papr
-    python3 -m pip install --no-cache-dir papr
-- give it a tag, e.g. "v0.0.13" (git tag -a v0.0.13 -m comment)
-- push it (git push --tags)
-- test: pip3 install papr
-- announce
-  - use monospace font for "pip3 install papr" from https://yaytext.com/monospace/
-    𝚙𝚒𝚙3 𝚒𝚗𝚜𝚝𝚊𝚕𝚕 𝚙𝚊𝚙𝚛 <- this should be UTF-8 chars monospaced
-- branch for next version: git checkout -b v0.0.18
-
-Example:
-Released version 0.0.18 of papr - a simple command line tool to manage scientific papers. New: create summaries, context menu, hide papers, change title, new version notification. [pip3 install papr] [screenshot] https://github.com/daniel-e/papr
 
 
 

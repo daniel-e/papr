@@ -1,98 +1,160 @@
 import os
+import pathlib
+import sys
+from collections import Counter
 
 import yaml
 
+from .db import Db
 from .config import Config
-from .paper import Paper
-from .repository_v1 import RepositoryV1, REPO_META
-from .repository_v2 import RepositoryV2, DATA_PATH, META_FILE
+from .cmd_fetch import title_as_filename
+
+DATA_PATH = "data"      # new in v2 repository
+META_FILE = "meta.yml"  # new in v2 repository
+REPO_META = ".paper"    # from v1 repository
+
+# FILES
+# ------------------------------------
+# <root_path>/<REPO_META>/<META_FILE> -> has the version of the repository
+# <root_path>/<DATA_PATH>/p00000_...  -> directory with notes.md and summary.md
+
+
+def _limit_len(s, maxlen):
+    while len(s) > maxlen:
+        p = s.rfind("_")
+        if p >= 0:
+            s = s[:p]
+        else:
+            s = s[:maxlen]
+    return s
+
+
+def path_for_paper_data(paper, data_path, maxlen=96):
+    dir_name = f"{paper.idx():05d}_{title_as_filename(paper.title())}"
+    return data_path.joinpath(_limit_len(dir_name, maxlen))
 
 
 class Repository:
     def __init__(self, config: Config):
-        self._repo_pdf_path = None
-        self._repo_meta_path = None
-        self._local = None
-        self._proxy = None
-        self._config = config
-        self._determine_paths()
+        self.db = None
+        self.config = config
+        self._valid = False
 
-        # TODO: eventuell muss init_path oder init hier implementiert werden, denn wir müssen hier
-        # berücksichtigen, ob wir uns in einem repo befinden oder außerhalb (und deshalb das default_repo verwenden)
+        root_path = self._determine_root()
+        if not self.is_valid():
+            return
 
-        if self._is_v1():
-            self._proxy = RepositoryV1(config, self._repo_meta_path)
-        elif self._is_v2():
-            self._proxy = RepositoryV2(config, self._repo_pdf_path)
+        self._repo_pdf_path = root_path
+        self._repo_data_path = pathlib.Path(root_path).joinpath(DATA_PATH)
+        self._repo_meta_path = pathlib.Path(root_path).joinpath(REPO_META)
 
-    def _is_v1(self):
-        return not os.path.exists(self._repo_pdf_path + "/" + REPO_META + "/"  + META_FILE)
-
-    def _is_v2(self):
-        p = self._repo_pdf_path + "/" + REPO_META + "/" + META_FILE
-        if os.path.exists(p):
-            with open(p, "rt") as f:
-                y = yaml.safe_load(f)
-                return int(y.get("repo_version", 0)) == 2
-        return False
-
-    def is_local_repository(self):
-        return self._local
-
-    def is_valid(self):
-        """
-        :return: True if this object represents a valid repository.
-        """
-        return self._repo_meta_path is not None and self._repo_pdf_path is not None
+        self.db = Db(self._repo_meta_path, self)
+        if not self.db.check_version():
+            print("Found incompatible version.")
+            sys.exit(1)
 
     def pdf_path(self):
         return self._repo_pdf_path
 
-    def _determine_paths(self):
+    def is_v2_repo(self):
+        # TODO check version in that file
+        return self._repo_meta_path.joinpath(META_FILE).exists()
+
+    def _determine_root(self):
         # First check if the current working directory is a repository.
-        self._repo_pdf_path = os.getcwd()  # $PWD
-        self._repo_meta_path = self._repo_pdf_path + "/" + REPO_META  # $PWD/.paper/
-        self._local = True
+        root_path = os.getcwd()
+        if os.path.exists(root_path + "/" + REPO_META):  # $PWD/.paper/
+            self._valid = True
+            return root_path
+        # If it does not exist read the location of the repository from
+        # the configuration.
+        root_path = self.config.get("default_repo")
+        if os.path.exists(root_path + "/" + REPO_META):  # <config_repo_root>/.paper/
+            self._valid = True
+            return root_path
 
-        if not os.path.exists(self._repo_meta_path):
-            # If it does not exist read the location of the repository from
-            # the configuration.
-            self._repo_pdf_path = self._config.get("default_repo")
-            self._repo_meta_path = self._repo_pdf_path + "/" + REPO_META
-            self._local = False
+    def is_valid(self):
+        return self._valid
 
-        if not os.path.exists(self._repo_meta_path):
-            self._repo_pdf_path = None
-            self._repo_meta_path = None
-            self._local = None
-
-    # Called by the user via "papr init".
     def init(self):
         """
         Creates directories, databases and updates configuration but does not change
         this isntance into a valid repository.
         :return:
         """
-        self._proxy.init()
+        pdf_path = os.getcwd()
+        data_path = pathlib.Path(pdf_path).joinpath(DATA_PATH)
+        meta_path = pathlib.Path(pdf_path).joinpath(REPO_META)
+        meta_file = meta_path.joinpath(META_FILE)
+
+        # Update configuration: set default repository.
+        self.config.set_default_repo(pdf_path)
+        # Create database.
+        data_path.mkdir(parents=True, exist_ok=True)
+        meta_path.mkdir(parents=True, exist_ok=True)
+
+        data = {
+            "repo_version": "2"
+        }
+        with open(meta_file, "wt") as f:
+            yaml.dump(data, f)
+
+        self.db = Db.create(meta_path)
+
+    def _path_for_paper(self, paper):
+        return path_for_paper_data(paper, self._repo_data_path)
+
+    def summary_filename(self, paper):
+        return self._path_for_paper(paper).joinpath("summary.md")
+
+    def notes_filename(self, paper):
+        return self._path_for_paper(paper).joinpath("notes.md")
+
+    def load_paper_data(self, paper):
+        summary = ""
+        notes = ""
+        summary_file = self.summary_filename(paper)
+        if summary_file.exists():
+            summary = summary_file.read_text()
+        notes_file = self.notes_filename(paper)
+        if notes_file.exists():
+            notes = notes_file.read_text()
+        data = {
+            "summary": summary,
+            "notes": notes
+        }
+        return data
+
+    def save_summary(self, paper, summary_str):
+        self._path_for_paper(paper).mkdir(parents=True, exist_ok=True)
+        self._path_for_paper(paper).joinpath("summary.md").write_text(summary_str)
+
+    def save_notes(self, paper, notes_str):
+        self._path_for_paper(paper).mkdir(parents=True, exist_ok=True)
+        self._path_for_paper(paper).joinpath("notes.md").write_text(notes_str)
 
     def list(self):
         """
         Returns a list of all papers.
         :return:
         """
-        return self._proxy.list()
+        return self.db.list()
 
     def next_id(self):
-        return self._proxy.next_id()
+        return self.db.next_id()
 
-    def add_paper(self, p: Paper):
-        return self._proxy.add_paper(p)
+    def add_paper(self, p):
+        return self.db.add_paper(p)
 
     def get_paper(self, idx):
-        return self._proxy.get_paper(idx)
+        return self.db.get(idx)
 
     def update_paper(self, p):
-        self._proxy.update_paper(p)
+        self.db.update_paper(p)
 
     def all_tags(self, sorted_by_usage=True):
-        return self._proxy.all_tags(sorted_by_usage=sorted_by_usage)
+        # Get a list of list of tags.
+        l = [paper.tags() for paper in self.list_partial()]
+        # Flatten the list and count the occurrences of each tag.
+        c = Counter([j for i in l for j in i])
+        return c.most_common()

@@ -2,7 +2,6 @@ import os
 
 import markdown
 from .paper import Paper
-from .repository import Repository
 
 
 def map_header(header):
@@ -31,7 +30,7 @@ def stars(n):
     return ("★"*n) + ("☆"*(5-n))
 
 
-def export_paper_html(repo: Repository, p: Paper, f, with_pdf_link=False):
+def export_paper_html(repo, p: Paper, f, with_pdf_link=False):
     pdf_link = ""
     if with_pdf_link:
         pdf_link = \
@@ -55,12 +54,12 @@ def export_paper_html(repo: Repository, p: Paper, f, with_pdf_link=False):
                     ), file=f)
 
 
-def export_repository_html(repo: Repository, dstfile, with_notes=False, with_summary=False, n=-1):
+def export_repository_html(repo, dstfile, with_notes=False, with_summary=False, n=-1):
     papers = reversed(repo.list())
     export_papers_html(repo, papers, dstfile, with_notes, with_summary, n)
 
 
-def export_papers_html(repo: Repository, papers, dstfile, with_notes=False, with_summary=False, n=-1, with_pdf_link=False):
+def export_papers_html(repo, papers, dstfile, with_notes=False, with_summary=False, n=-1, with_pdf_link=False):
     mydir = os.path.dirname(__file__)
     header = open(os.path.join(mydir, "../html/header.html"), "r").read()
     footer = open(os.path.join(mydir, "../html/footer.html"), "r").read()
