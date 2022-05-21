@@ -4,7 +4,7 @@ import os
 
 
 class Config:
-    _PAPR_VERSION = "0.0.18"
+    _PAPR_VERSION = "0.0.19"
 
     def __init__(self):
         self.config_path = str(Path.home()) + "/.papr"

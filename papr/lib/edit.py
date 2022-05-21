@@ -38,16 +38,24 @@ def less(msg, args=[]):
     call(cmd)
 
 
-def edit_file(filename):
-    call([os.getenv('EDITOR', 'vim'), filename])
+def _edit_file(filename):
+    call([os.getenv('MARKUP_EDITOR', 'vim'), filename])
 
 
 def edit_notes_of_paper(repo, p: Paper):
-    edit_file(repo.notes_filename(p))
+    repo.path_for_paper(p).mkdir(parents=True, exist_ok=True)
+    filename = repo.notes_filename(p)
+    _edit_file(filename)
+    p.set_has_notes(len(filename.read_text().strip()) > 0)
+    repo.update_paper(p)
 
 
 def edit_summary_of_paper(repo, p: Paper):
-    edit_file(repo.summary_filename(p))
+    repo.path_for_paper(p).mkdir(parents=True, exist_ok=True)
+    filename = repo.summary_filename(p)
+    _edit_file(filename)
+    p.set_has_summary(len(filename.read_text().strip()) > 0)
+    repo.update_paper(p)
 
 
 def tags_of_paper(repo, p: Paper):

@@ -1,4 +1,5 @@
 import json
+from .repository import Repository
 
 
 class Paper:
@@ -13,6 +14,8 @@ class Paper:
         self._hidden = False
         self._highlights = []  # for search
         self._repo = None
+        self._has_notes = False
+        self._has_summary = False
 
     @staticmethod
     def from_json(idx, jsonstr, repo):
@@ -26,6 +29,8 @@ class Paper:
         p._abstract = data.get("abstract", "")
         p._url = data.get("url", "")
         p._hidden = False if data.get("hidden", "n") == "n" else True
+        p._has_notes = data.get("has_notes", False)
+        p._has_summary = data.get("has_summary", False)
         p._repo = repo
         return p
 
@@ -49,7 +54,9 @@ class Paper:
             "stars": self._stars,
             "abstract": self._abstract,
             "url": self._url,
-            "hidden": "y" if self._hidden else "n"
+            "hidden": "y" if self._hidden else "n",
+            "has_notes": self._has_notes,
+            "has_summary": self._has_summary
         }
         return d
 
@@ -78,12 +85,16 @@ class Paper:
         return self._repo.load_paper_data(self).get("summary")
 
     def has_notes(self):
-        return False  # TODO
-        #return len(self._msg) > 0
+        return self._has_notes
 
     def has_summary(self):
-        return False  # TODO
-        #return len(self.summary()) > 0
+        return self._has_summary
+
+    def set_has_summary(self, value):
+        self._has_summary = value
+
+    def set_has_notes(self, value):
+        self._has_notes = value
 
     def tags(self):
         """

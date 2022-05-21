@@ -101,14 +101,14 @@ class Repository:
 
         self.db = Db.create(meta_path)
 
-    def _path_for_paper(self, paper):
+    def path_for_paper(self, paper):
         return path_for_paper_data(paper, self._repo_data_path)
 
     def summary_filename(self, paper):
-        return self._path_for_paper(paper).joinpath("summary.md")
+        return self.path_for_paper(paper).joinpath("summary.md")
 
     def notes_filename(self, paper):
-        return self._path_for_paper(paper).joinpath("notes.md")
+        return self.path_for_paper(paper).joinpath("notes.md")
 
     def load_paper_data(self, paper):
         summary = ""
@@ -126,12 +126,12 @@ class Repository:
         return data
 
     def save_summary(self, paper, summary_str):
-        self._path_for_paper(paper).mkdir(parents=True, exist_ok=True)
-        self._path_for_paper(paper).joinpath("summary.md").write_text(summary_str)
+        self.path_for_paper(paper).mkdir(parents=True, exist_ok=True)
+        self.path_for_paper(paper).joinpath("summary.md").write_text(summary_str)
 
     def save_notes(self, paper, notes_str):
-        self._path_for_paper(paper).mkdir(parents=True, exist_ok=True)
-        self._path_for_paper(paper).joinpath("notes.md").write_text(notes_str)
+        self.path_for_paper(paper).mkdir(parents=True, exist_ok=True)
+        self.path_for_paper(paper).joinpath("notes.md").write_text(notes_str)
 
     def list(self):
         """

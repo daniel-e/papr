@@ -120,11 +120,6 @@ def redraw(state, papers, v, conf):
     cnt = 0 + 3
     for idx, p in enumerate(papers[v.first():v.end()]):
         print_paper(p, idx + v.first() == v.selected())
-        #if state.show_summary:
-        #    l = "Foo"
-        #    s = " " * 6 + l + " " * (cols() - 6 - len(l))
-        #    print(s)
-        #    cnt += 1
         cnt += 1
 
     # clear remaining lines
@@ -217,22 +212,35 @@ def center_box(content):
 
 def show_new_features(conf: Config):
     message = [
-        "CHANGES FROM 0.0.17 TO 0.0.18",
-        "",
-        "• You can now change the title of a paper with the key 'e'.",
-        "• Never miss a new version! If a new version is available, it will be",
-        "  shown at the top of the screen.",
-        "  For this the setup.py from the GitHub repository is retrieved and",
-        "  checked.",
-        "• When you upgrade papr to the latest version this message with changes",
-        "  is shown on the first start.",
-        "• You can hide papers with the key 'c'. Use the same key to make hidden",
-        "  papers visible again. You can change between the list of hidden and",
-        "  visible papers with the key '.'",
-        "• Press 'space' to get a context menu.",
-        "• You can already create notes for a paper. Now, you can also create a",
-        "  summary. Just select 'edit summary' from the context menu or use the",
-        "  shortcut 'U'. List all papers with a summary with the shortcut 'm'."
+        "CHANGES FROM 0.0.18 TO 0.0.19",
+        "-----------------------------",
+        "• Navigation",
+        "  • Shift+Up/Down - jump 5 entries up/down",
+        "  • Page Up/Down  - jump one page up/down"
+        "• Fetch",
+        "  • You can now specify more than just one URL for fetch command.",
+        "  • You can now specify tags for fetch command.",
+        "• Storage for notes and summary more open and accessible. You can now",
+        "  read and edit your notes and summaries without papr.",
+        "• Export to HTML.",
+        "• Minor improvements to UI."
+#        "",
+#        "CHANGES FROM 0.0.17 TO 0.0.18",
+#        "-----------------------------",
+#        "• You can now change the title of a paper with the key 'e'.",
+#        "• Never miss a new version! If a new version is available, it will be",
+#        "  shown at the top of the screen.",
+#        "  For this the setup.py from the GitHub repository is retrieved and",
+#        "  checked.",
+#        "• When you upgrade papr to the latest version this message with changes",
+#        "  is shown on the first start.",
+#        "• You can hide papers with the key 'c'. Use the same key to make hidden",
+#        "  papers visible again. You can change between the list of hidden and",
+#        "  visible papers with the key '.'",
+#        "• Press 'space' to get a context menu.",
+#        "• You can already create notes for a paper. Now, you can also create a",
+#        "  summary. Just select 'edit summary' from the context menu or use the",
+#        "  shortcut 'U'. List all papers with a summary with the shortcut 'm'."
     ]
     posx, posy = center_box(message)
     write_box_xy(posx, posy, message)

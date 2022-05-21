@@ -1,21 +1,5 @@
-migration to a more open and accessible storage structure for notes, summaries and metadata
-
-- when starting check current storage
-  if old storage -> migrate to new storage
-- new storage
-  old:
-    <repo>/.paper/paper.db -> old database
-  new:
-    <repo>/xxx/p00000_.../{summary.md,notes.md}
-      notes.md has a front matter for meta data
-    <repo>/.paper/papers.yml (created at the end of the migration to detect interruptions of migration)
-      -> list of papers with idx
-      -> version of storage structure
-
 0.0.19 (in progress)
-- TODO: merge multiple lines in title to one when fetching a paper
-- TODO: run local webserver
-- TODO: migration to a more open and accessible storage structure for notes, summaries and metadata
+- intern: migration to a more open and accessible storage structure for notes, summaries and metadata
 - feature: use shift + keyup/keydown to jump 5 entries up/down
 - feature: page down/up
 - feature: specify more than one url for fetching

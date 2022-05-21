@@ -1,5 +1,12 @@
+Known Issues
+
+* if notes.md or summary.md is edited in an external editor or deleted the flag in the overview
+  might be out of sync
+
 Backlog
 
+* merge multiple lines in title to one when fetching a paper
+* run local webserver
 * fetch more than one paper
 * template for notes + guideline to create colored noted in vim
 * page up/down to scroll
