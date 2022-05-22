@@ -28,7 +28,7 @@ Steps to test the migration:
 - [x] Set a new version in Makefile (section reinstall)
 - [x] Update ChangeLog
 - [x] Update new feature description in ui.py::show_new_features
-- [ ] commit everything into branch + push
+- [x] commit everything into branch + push
 - [ ] merge branch into master
   - git checkout master
   - git merge v0.0.??
