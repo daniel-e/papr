@@ -53,6 +53,10 @@ class Repository:
             print("Found incompatible version.")
             sys.exit(1)
 
+    def is_local_repository(self):
+        root_path = os.getcwd()
+        return os.path.exists(root_path + "/" + REPO_META)  # $PWD/.paper/
+
     def pdf_path(self):
         return self._repo_pdf_path
 
