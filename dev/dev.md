@@ -23,12 +23,12 @@ Steps to test the migration:
 
 # Publish a new version to PyPI
 
-- [x] Set a new version in setup.py
-- [x] Set a new version in config.py::_PAPR_VERSION
-- [x] Set a new version in Makefile (section reinstall)
-- [x] Update ChangeLog
-- [x] Update new feature description in ui.py::show_new_features
-- [x] commit everything into branch + push
+- [ ] Set a new version in setup.py
+- [ ] Set a new version in config.py::_PAPR_VERSION
+- [ ] Set a new version in Makefile (section reinstall)
+- [ ] Update ChangeLog
+- [ ] Update new feature description in ui.py::show_new_features
+- [ ] commit everything into branch + push
 - [ ] merge branch into master
   - git checkout master
   - git merge v0.0.??

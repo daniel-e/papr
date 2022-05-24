@@ -1,4 +1,7 @@
-0.0.19 (in progress)
+0.0.20
+- bugfix: exception terminated papr when notes or summary did not exist after editing
+
+0.0.19
 - intern: migration to a more open and accessible storage structure for notes, summaries and metadata
 - feature: use shift + keyup/keydown to jump 5 entries up/down
 - feature: page down/up

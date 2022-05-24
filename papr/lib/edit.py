@@ -46,7 +46,8 @@ def edit_notes_of_paper(repo, p: Paper):
     repo.path_for_paper(p).mkdir(parents=True, exist_ok=True)
     filename = repo.notes_filename(p)
     _edit_file(filename)
-    p.set_has_notes(len(filename.read_text().strip()) > 0)
+    has_notes = filename.exists() and len(filename.read_text().strip()) > 0
+    p.set_has_notes(has_notes)
     repo.update_paper(p)
 
 
@@ -54,7 +55,8 @@ def edit_summary_of_paper(repo, p: Paper):
     repo.path_for_paper(p).mkdir(parents=True, exist_ok=True)
     filename = repo.summary_filename(p)
     _edit_file(filename)
-    p.set_has_summary(len(filename.read_text().strip()) > 0)
+    has_summary = filename.exists() and len(filename.read_text().strip()) > 0
+    p.set_has_summary(has_summary)
     repo.update_paper(p)
 
 

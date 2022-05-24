@@ -1,4 +1,4 @@
-VERSION="0.0.19"
+VERSION="0.0.20"
 
 clean:
 	rm -rf build dist papr.egg-info

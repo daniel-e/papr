@@ -212,7 +212,7 @@ def center_box(content):
 
 def show_new_features(conf: Config):
     message = [
-        "CHANGES FROM 0.0.18 TO 0.0.19",
+        "CHANGES FROM 0.0.18 TO 0.0.20",
         "-----------------------------",
         "• Navigation",
         "  • Shift+Up/Down - jump 5 entries up/down",
